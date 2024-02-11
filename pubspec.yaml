@@ -4,7 +4,7 @@ version: 0.0.1
 homepage: https://github.com/Dexterfury/flutter_chat_reactions.git
 
 environment:
-  sdk: '>=3.4.0-24.0.dev <4.0.0'
+  sdk: '>=3.2.6 <4.0.0'
   flutter: ">=1.17.0"
 
 dependencies:
