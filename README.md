@@ -16,7 +16,7 @@ and the Flutter guide for
 `flutter_chat_reactions` Enhance your Flutter chat with expressive reactions.
 Need a simple and powerful way to add customizable message reactions to your Flutter chat app? Look no further than flutter_chat_reactions!
 
-![demo](https://user-images.githubusercontent.com/29194552/148517560-6f41a081-9b34-4975-9052-a2855d46b555.gif)
+![Demo GIF of flutter_chat_reactions](flutter_chat_reaction/flutter_chat_reaction_gif.gif)
 
 ## Features
 
