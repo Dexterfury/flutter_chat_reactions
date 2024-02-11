@@ -11,29 +11,107 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/developing-packages).
 -->
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+# flutter_chat_reactions
+
+`flutter_chat_reactions` Enhance your Flutter chat with expressive reactions.
+Need a simple and powerful way to add customizable message reactions to your Flutter chat app? Look no further than flutter_chat_reactions!
+
+![Demo GIF of flutter_chat_reactions](flutter_chat_reaction_gif.gif)
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+ - Reaction Dialog: Upon long-pressing the chat widget, a user-friendly dialog appears, offering a range of expressive reactions.
+ - Compact Layout: The reactions are presented in a clean column layout, with the first child being a row containing six default reactions. A convenient '+' sign allows users to access an extended emoji container for even more reaction options.
+ - Context Menu: Below the message widget, users can access a context menu, adding depth to the interaction within the chat application.
+ - customizable Widgets: Reactions and Context Menu can be customized.
 
 ## Getting started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+Add dependency to `pubspec.yaml`
+
+```dart
+dependencies:
+  flutter_chat_reactions: <latest-version>
+```
+In your dart file, import the library:
+
+ ```Dart
+import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
+ ``` 
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+1. First wrap your `Widget` with a `Hero` Widget:
 
 ```dart
-const like = 'sample';
+    Hero(tag: message.id,
+      child: MessageWidget(message: message),
+),
 ```
 
-## Additional information
+2. Wrap your `Hero` Widget with a `GestureDetector` or `Inkwell` Widget:
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+```dart
+    GestureDetector(
+                      // wrap your message widget with a [GestureDectector] or [InkWell]
+                      onLongPress: () {
+                        // navigate with a custom [HeroDialogRoute] to [ReactionsDialogWidget]
+                      },
+                      // wrap message with [Hero] widget
+                      child: Hero(
+                        tag: message.id,
+                        child: MessageWidget(message: message),
+                      ),
+                    );
+```
+
+3. OnLonPress navigate with `HeroDialogRoute` to `ReactionsDialogWidget` See example for more:
+
+```dart
+    GestureDetector(
+                      // wrap your message widget with a [GestureDectector] or [InkWell]
+                      onLongPress: () {
+                        // navigate with a custom [HeroDialogRoute] to [ReactionsDialogWidget]
+                        Navigator.of(context).push(
+                          HeroDialogRoute(
+                            builder: (context) {
+                              return ReactionsDialogWidget(
+                                id: message.id, // unique id for message
+                                messageWidget: MyMessage(message: message), // message widget
+                                onReactionTap: (reaction) {
+                                  print('reaction: $reaction');
+
+                                  if (reaction == '➕') {
+                                    // show emoji picker container
+                                  } else {
+                                    // add reaction to message
+                                  }
+                                },
+                                onContextMenuTap: (menuItem) {
+                                  print('menu item: $menuItem');
+                                  // handle context menu item
+                                },
+                              );
+                            },
+                          ),
+                        );
+                      },
+                      // wrap message with [Hero] widget
+                      child: Hero(
+                        tag: message.id,
+                        child: MessageWidget(message: message),
+                      ),
+                    );
+```
+### Parameters:
+| Name | Description | Required | Default value |
+|----|----|----|----|
+|`id`| Unique id for message and Hero Widget | required | - |
+|`messageWidget` | The message widget to be displayed in the dialog | required | - |
+|`onReactionTap`| The callback function to be called when a reaction is tapped | required | - |
+|`onContextMenuTap`| The callback function to be called when a context menu item is tapped | required | - |
+|`reactions` | The list of reactions to be displayed | no | like, love, haha, wow, sad, angry and plus for more |
+|`menuItems` | The list of menu items to be displayed in the context menu | no | `Reply, Copy and Delete` |
+|`widgetAlignment` | The alignment of the widget | no | aligned to center right |
+|`menuItemsWidth` | The width of the menu items | no | 45% of the screen width |
+

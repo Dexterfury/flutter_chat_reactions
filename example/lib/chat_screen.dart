@@ -18,8 +18,9 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   // show emoji picker bottom sheet
-  void showEmojiBottomSheet(
-      {required Message message, required String reaction}) {
+  void showEmojiBottomSheet({
+    required Message message,
+  }) {
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -31,7 +32,7 @@ class _ChatScreenState extends State<ChatScreen> {
               Navigator.pop(context);
               addReactionToMessage(
                 message: message,
-                reaction: reaction,
+                reaction: emoji.emoji,
               );
             }),
           ),
@@ -96,7 +97,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                     // show emoji picker container
                                     showEmojiBottomSheet(
                                       message: message,
-                                      reaction: reaction,
                                     );
                                   } else {
                                     // add reaction to message

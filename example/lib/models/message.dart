@@ -40,7 +40,7 @@ class Message {
       id: '4',
       message: 'I am fine, thank you',
       timeSent: '10:03 AM',
-      reactions: ['👍'],
+      reactions: [],
       isMe: true,
     ),
     Message(
@@ -61,7 +61,7 @@ class Message {
       id: '7',
       message: 'Good to hear that',
       timeSent: '10:06 AM',
-      reactions: [],
+      reactions: ['👍'],
       isMe: false,
     ),
     Message(
