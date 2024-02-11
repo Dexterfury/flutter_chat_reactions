@@ -16,46 +16,102 @@ and the Flutter guide for
 `flutter_chat_reactions` Enhance your Flutter chat with expressive reactions.
 Need a simple and powerful way to add customizable message reactions to your Flutter chat app? Look no further than flutter_chat_reactions!
 
-![Demo GIF of flutter_chat_reactions](flutter_chat_reaction/flutter_chat_reaction_gif.gif)
+![Demo GIF of flutter_chat_reactions](flutter_chat_reaction_gif.gif)
 
 ## Features
 
- - `endless` and `bouncing` modes
- - delay and pause between rounds
- - max number of rounds
- - custom velocity
- - `style` and `textAlign` support
+ - Reaction Dialog: Upon long-pressing the chat widget, a user-friendly dialog appears, offering a range of expressive reactions.
+ - Compact Layout: The reactions are presented in a clean column layout, with the first child being a row containing six default reactions. A convenient '+' sign allows users to access an extended emoji container for even more reaction options.
+ - Context Menu: Below the message widget, users can access a context menu, adding depth to the interaction within the chat application.
+ - customizable Widgets: Reactions and Context Menu can be customized.
 
 ## Getting started
 
-To use this package, add text_scroll as a dependency in your pubspec.yaml file.
+Add dependency to `pubspec.yaml`
+
+```dart
+dependencies:
+  flutter_chat_reactions: <latest-version>
+```
+In your dart file, import the library:
+
+ ```Dart
+import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
+ ``` 
 
 ## Usage
 
-Minimal example:
+1. First wrap your `Widget` with a `Hero` Widget:
 
 ```dart
-    TextScroll('This is the sample text for Flutter TextScroll widget. ')
+    Hero(tag: message.id,
+      child: MessageWidget(message: message),
+),
 ```
 
-Custom settings:
+2. Wrap your `Hero` Widget with a `GestureDetector` or `Inkwell` Widget:
 
 ```dart
-    TextScroll(
-        'This is the sample text for Flutter TextScroll widget. ',
-        mode: TextScrollMode.bouncing,
-        velocity: Velocity(pixelsPerSecond: Offset(150, 0)),
-        delayBefore: Duration(milliseconds: 500),
-        numberOfReps: 5,
-        pauseBetween: Duration(milliseconds: 50),
-        style: TextStyle(color: Colors.green),
-        textAlign: TextAlign.right,
-        selectable: true,
-    )
+    GestureDetector(
+                      // wrap your message widget with a [GestureDectector] or [InkWell]
+                      onLongPress: () {
+                        // navigate with a custom [HeroDialogRoute] to [ReactionsDialogWidget]
+                      },
+                      // wrap message with [Hero] widget
+                      child: Hero(
+                        tag: message.id,
+                        child: MessageWidget(message: message),
+                      ),
+                    );
 ```
 
-## See also
+3. OnLonPress navigate with `HeroDialogRoute` to `ReactionsDialogWidget` See example for more:
 
- - [github repo](https://github.com/yurii-khi/text_scroll)
- - [pub.dev package](https://pub.dev/packages/text_scroll)
- - [api reference](https://pub.dev/documentation/text_scroll/latest/text_scroll/TextScroll-class.html)
+```dart
+    GestureDetector(
+                      // wrap your message widget with a [GestureDectector] or [InkWell]
+                      onLongPress: () {
+                        // navigate with a custom [HeroDialogRoute] to [ReactionsDialogWidget]
+                        Navigator.of(context).push(
+                          HeroDialogRoute(
+                            builder: (context) {
+                              return ReactionsDialogWidget(
+                                id: message.id, // unique id for message
+                                messageWidget: MyMessage(message: message), // message widget
+                                onReactionTap: (reaction) {
+                                  print('reaction: $reaction');
+
+                                  if (reaction == '➕') {
+                                    // show emoji picker container
+                                  } else {
+                                    // add reaction to message
+                                  }
+                                },
+                                onContextMenuTap: (menuItem) {
+                                  print('menu item: $menuItem');
+                                  // handle context menu item
+                                },
+                              );
+                            },
+                          ),
+                        );
+                      },
+                      // wrap message with [Hero] widget
+                      child: Hero(
+                        tag: message.id,
+                        child: MessageWidget(message: message),
+                      ),
+                    );
+```
+### Parameters:
+| Name | Description | Required | Default value |
+|----|----|----|----|
+|`id`| Unique id for message and Hero Widget | required | - |
+|`messageWidget` | The message widget to be displayed in the dialog | required | - |
+|`onReactionTap`| The callback function to be called when a reaction is tapped | required | - |
+|`onContextMenuTap`| The callback function to be called when a context menu item is tapped | required | - |
+|`reactions` | The list of reactions to be displayed | no | like, love, haha, wow, sad, angry and plus for more |
+|`menuItems` | The list of menu items to be displayed in the context menu | no | `Reply, Copy and Delete` |
+|`widgetAlignment` | The alignment of the widget | no | aligned to center right |
+|`menuItemsWidth` | The width of the menu items | no | 45% of the screen width |
+
