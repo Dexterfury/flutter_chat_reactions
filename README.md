@@ -11,29 +11,51 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/developing-packages).
 -->
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+# flutter_chat_reactions
+
+`flutter_chat_reactions` Enhance your Flutter chat with expressive reactions.
+Need a simple and powerful way to add customizable message reactions to your Flutter chat app? Look no further than flutter_chat_reactions!
+
+![demo](https://user-images.githubusercontent.com/29194552/148517560-6f41a081-9b34-4975-9052-a2855d46b555.gif)
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+ - `endless` and `bouncing` modes
+ - delay and pause between rounds
+ - max number of rounds
+ - custom velocity
+ - `style` and `textAlign` support
 
 ## Getting started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+To use this package, add text_scroll as a dependency in your pubspec.yaml file.
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+Minimal example:
 
 ```dart
-const like = 'sample';
+    TextScroll('This is the sample text for Flutter TextScroll widget. ')
 ```
 
-## Additional information
+Custom settings:
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+```dart
+    TextScroll(
+        'This is the sample text for Flutter TextScroll widget. ',
+        mode: TextScrollMode.bouncing,
+        velocity: Velocity(pixelsPerSecond: Offset(150, 0)),
+        delayBefore: Duration(milliseconds: 500),
+        numberOfReps: 5,
+        pauseBetween: Duration(milliseconds: 50),
+        style: TextStyle(color: Colors.green),
+        textAlign: TextAlign.right,
+        selectable: true,
+    )
+```
+
+## See also
+
+ - [github repo](https://github.com/yurii-khi/text_scroll)
+ - [pub.dev package](https://pub.dev/packages/text_scroll)
+ - [api reference](https://pub.dev/documentation/text_scroll/latest/text_scroll/TextScroll-class.html)
