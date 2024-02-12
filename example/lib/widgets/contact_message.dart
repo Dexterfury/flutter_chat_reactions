@@ -38,24 +38,26 @@ class ContactMessage extends StatelessWidget {
                 color: Colors.black54,
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        message.message,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSecondary,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          message.message,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSecondary,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        message.timeSent,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(context).colorScheme.onSecondary,
+                        const SizedBox(height: 5),
+                        Text(
+                          message.timeSent,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.onSecondary,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

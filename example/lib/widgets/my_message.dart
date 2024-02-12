@@ -35,35 +35,37 @@ class MyMessage extends StatelessWidget {
                 color: Theme.of(context).colorScheme.primary,
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        message.message,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimary,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          message.message,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 5),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            message.timeSent,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).colorScheme.onPrimary,
+                        const SizedBox(height: 5),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              message.timeSent,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 5),
-                          const Icon(
-                            Icons.done_all,
-                            color: Colors.blue,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                    ],
+                            const SizedBox(width: 5),
+                            const Icon(
+                              Icons.done_all,
+                              color: Colors.blue,
+                              size: 20,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
