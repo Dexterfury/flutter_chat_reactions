@@ -1,5 +1,4 @@
-## 0.0.3
+## 0.0.4
 
-* Updated the exmaple app
 * Updated the read me file
 
