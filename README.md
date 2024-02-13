@@ -16,7 +16,11 @@ and the Flutter guide for
 `flutter_chat_reactions` Enhance your Flutter chat with expressive reactions.
 Need a simple and powerful way to add customizable message reactions to your Flutter chat app? Look no further than flutter_chat_reactions!
 
-![Demo GIF of flutter_chat_reactions](flutter_chat_reaction_gif.gif)
+Liked some of my work? Buy me a coffee. Thanks for your support :heart:
+
+<a href="https://www.buymeacoffee.com/raphaelsqu7" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" height=64></a>
+
+<img src="flutter_chat_reaction_gif.gif" alt="Demo GIF of flutter_chat_reactions" width="270" height="585">
 
 ## Features
 
@@ -114,4 +118,8 @@ import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
 |`menuItems` | The list of menu items to be displayed in the context menu | no | `Reply, Copy and Delete` |
 |`widgetAlignment` | The alignment of the widget | no | aligned to center right |
 |`menuItemsWidth` | The width of the menu items | no | 45% of the screen width |
+
+## Contributions
+
+   All contributions are welcome!
 
