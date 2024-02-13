@@ -20,7 +20,7 @@ Liked some of my work? Buy me a coffee. Thanks for your support :heart:
 
 <a href="https://www.buymeacoffee.com/raphaelsqu7" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" height=64></a>
 
-![demo](flutter_chat_reactions_iphone_demo.gif)
+![demo](flutter_chat_reactions_iphone_demo2.gif)
 
 ## Features
 
