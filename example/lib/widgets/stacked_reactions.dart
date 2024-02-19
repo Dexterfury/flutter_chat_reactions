@@ -28,22 +28,25 @@ class StackedReactions extends StatelessWidget {
           final left = size - stackedValue;
           final value = Container(
             margin: EdgeInsets.only(left: left * index),
-            padding: const EdgeInsets.all(2.0),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(25)),
+            padding: const EdgeInsets.fromLTRB(5.0, 2.0, 5.0, 2.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.background,
+              borderRadius: const BorderRadius.all(Radius.circular(25)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
-                  offset: Offset(0.0, 1.0), //(x,y)
+                  color: Theme.of(context).colorScheme.onBackground,
+                  offset: const Offset(0.0, 1.0), //(x,y)
                   blurRadius: 6.0,
                 ),
               ],
             ),
-            child: ClipOval(
-              child: Text(
-                reaction,
-                style: TextStyle(fontSize: size),
+            child: Center(
+              child: Material(
+                color: Colors.transparent,
+                child: Text(
+                  reaction,
+                  style: TextStyle(fontSize: size),
+                ),
               ),
             ),
           );
@@ -64,24 +67,27 @@ class StackedReactions extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(2.0),
             margin: const EdgeInsets.all(2),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(25)),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.background,
+              borderRadius: const BorderRadius.all(Radius.circular(25)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
-                  offset: Offset(0.0, 1.0), //(x,y)
+                  color: Theme.of(context).colorScheme.onBackground,
+                  offset: const Offset(0.0, 1.0), //(x,y)
                   blurRadius: 6.0,
                 ),
               ],
             ),
-            child: ClipOval(
+            child: Center(
               child: Padding(
                 padding: const EdgeInsets.all(2.0),
-                child: Text(
-                  '+$remaing',
-                  style: const TextStyle(
-                    fontSize: 12,
+                child: Material(
+                  color: Colors.transparent,
+                  child: Text(
+                    '+$remaing',
+                    style: const TextStyle(
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ),

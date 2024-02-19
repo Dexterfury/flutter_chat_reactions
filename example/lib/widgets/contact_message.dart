@@ -35,7 +35,7 @@ class ContactMessage extends StatelessWidget {
                     bottomRight: Radius.circular(15),
                   ),
                 ),
-                color: Colors.black54,
+                color: Theme.of(context).colorScheme.secondary,
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: SingleChildScrollView(
@@ -64,7 +64,7 @@ class ContactMessage extends StatelessWidget {
             ),
             Positioned(
               bottom: 4,
-              left: 0,
+              left: 4,
               child: StackedReactions(
                 message: message,
                 size: 20,

@@ -6,3 +6,7 @@
 
 * Updated the demo gif
 
+## [0.0.6]
+
+* Added dark theme mode support
+
