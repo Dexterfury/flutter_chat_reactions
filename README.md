@@ -21,10 +21,8 @@ Liked some of my work? Buy me a coffee. Thanks for your support :heart:
 <a href="https://www.buymeacoffee.com/raphaelsqu7" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" height=64></a>
 
 
-<div align="center">
-  <img src="demo_light.gif">
-  <img src="demo_dark.gif">
-</div>
+[![Demo 1](demo_light.gif)](demo_light.gif)
+[![Demo 2](demo_dark.gif)](demo_dark.gif)
 
 ## Features
 
