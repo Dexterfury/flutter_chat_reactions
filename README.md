@@ -22,8 +22,8 @@ Liked some of my work? Buy me a coffee. Thanks for your support :heart:
 
 
 <div align="center">
-  <img src="example/assets/images/demo_light.gif">
-  <img src="example/assets/images/demo_dark.gif">
+  <img src="demo_light.gif">
+  <img src="demo_dark.gif">
 </div>
 
 ## Features
