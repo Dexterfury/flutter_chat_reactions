@@ -10,3 +10,7 @@
 
 * Added dark theme mode support
 
+## [0.0.7]
+
+* Updated demo gifs
+
