@@ -121,23 +121,22 @@ import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
             ),
 
             // reactions
-            Positioned( // positioned widget where to show your reaction
+            Positioned( // the position where to show your reaction
             bottom: 4,
             right: 20,
             child: StackedReactions( // reactions widget
-              reactions: message.reactions, // Size of the reaction icon/text
-              size: 20, // // Value used to calculate the horizontal offset of each reaction
-              stackedValue: 4.0,
+              reactions: message.reactions, // list of reaction strings
+              stackedValue: 4.0, // Value used to calculate the horizontal offset of each reaction
             ),
           )
           ],
         ),
 ```
 
-### Parameters:
+### ReactionsDialogWidget Parameters:
 | Name | Description | Required | Default value |
 |----|----|----|----|
-|`id`| Unique id for message and Hero Widget | required | - |
+|`reactions`| Unique id for message and Hero Widget | required | - |
 |`messageWidget` | The message widget to be displayed in the dialog | required | - |
 |`onReactionTap`| The callback function to be called when a reaction is tapped | required | - |
 |`onContextMenuTap`| The callback function to be called when a context menu item is tapped | required | - |
@@ -149,6 +148,14 @@ import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
 
 ## Other Widgets
 `StackedReactions` A seperate reactions widget for displaying reactions, you can wrap this with a positioned widget.
+
+### StackedReactions Parameters:
+| Name | Description | Required | Default value |
+|----|----|----|----|
+|`reactions`| The list of reactions to be displayed | required | - |
+|`size` | A double, size of the reaction string (text) | no | 20.0 |
+|`stackedValue`| A double, value used to calculate the horizontal offset of each reaction | no | 4.0 |
+|`direction`| Stacked reactions direction (LTR or RTL) | no | TextDirection.ltr |
 
 ## Contributions
 

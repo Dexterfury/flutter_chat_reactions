@@ -22,6 +22,11 @@
 
 * Updated example App
 * Added a StackedReactions widget for displaying reactions
-* updated dependencies
-* updated the read me file
+* Updated dependencies
+* Updated the read me file
+
+## [0.1.0]
+
+* Updated the read me file
+* Code refactoring 
 

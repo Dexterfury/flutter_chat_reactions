@@ -44,8 +44,6 @@ class MessageWidget extends StatelessWidget {
             right: 20,
             child: StackedReactions(
               reactions: message.reactions,
-              size: 20,
-              stackedValue: 4.0,
             ),
           )
         : Positioned(
@@ -53,8 +51,6 @@ class MessageWidget extends StatelessWidget {
             left: 8,
             child: StackedReactions(
               reactions: message.reactions,
-              size: 20,
-              stackedValue: 4.0,
             ),
           );
   }
