@@ -2,9 +2,7 @@ import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:example/models/message.dart';
 import 'package:example/widgets/bottom_chat_field.dart';
 import 'package:example/widgets/contact_info.dart';
-import 'package:example/widgets/contact_message.dart';
 import 'package:example/widgets/message_widget.dart';
-import 'package:example/widgets/my_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
 import 'package:flutter_chat_reactions/utilities/hero_dialog_route.dart';
@@ -108,10 +106,8 @@ class _ChatScreenState extends State<ChatScreen> {
                             builder: (context) {
                               return ReactionsDialogWidget(
                                 id: message.id, // unique id for message
-                                messageWidget: message.isMe
-                                    ? MyMessage(message: message)
-                                    : ContactMessage(
-                                        message: message), // message widget
+                                messageWidget: MessageWidget(
+                                    message: message), // message widget
                                 onReactionTap: (reaction) {
                                   print('reaction: $reaction');
 

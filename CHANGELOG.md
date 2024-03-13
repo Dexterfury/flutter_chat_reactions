@@ -14,3 +14,14 @@
 
 * Updated demo gifs
 
+## [0.0.8]
+
+* Minor fixes
+
+## [0.0.9]
+
+* Updated example App
+* Added a StackedReactions widget for displaying reactions
+* updated dependencies
+* updated the read me file
+

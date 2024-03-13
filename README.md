@@ -71,7 +71,7 @@ import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
                     );
 ```
 
-3. OnLonPress navigate with `HeroDialogRoute` to `ReactionsDialogWidget` See example for more:
+3. OnLonPress, navigate with `HeroDialogRoute` to `ReactionsDialogWidget` See example for more:
 
 ```dart
     GestureDetector(
@@ -83,7 +83,7 @@ import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
                             builder: (context) {
                               return ReactionsDialogWidget(
                                 id: message.id, // unique id for message
-                                messageWidget: MyMessage(message: message), // message widget
+                                messageWidget: MessageWidget(message: message,), // message widget
                                 onReactionTap: (reaction) {
                                   print('reaction: $reaction');
 
@@ -105,10 +105,35 @@ import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
                       // wrap message with [Hero] widget
                       child: Hero(
                         tag: message.id,
-                        child: MessageWidget(message: message),
+                        child: MessageWidget(message: message,),
                       ),
                     );
 ```
+
+4. Don't forget to add the `StackedReactions` widget to your `messageWidget` or you can create your own custom `reaction widget` See example for more:
+
+```dart
+    Stack(
+          children: [
+            // your message
+            buildMessage(
+              context,
+            ),
+
+            // reactions
+            Positioned( // positioned widget where to show your reaction
+            bottom: 4,
+            right: 20,
+            child: StackedReactions( // reactions widget
+              reactions: message.reactions, // Size of the reaction icon/text
+              size: 20, // // Value used to calculate the horizontal offset of each reaction
+              stackedValue: 4.0,
+            ),
+          )
+          ],
+        ),
+```
+
 ### Parameters:
 | Name | Description | Required | Default value |
 |----|----|----|----|
@@ -120,6 +145,10 @@ import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
 |`menuItems` | The list of menu items to be displayed in the context menu | no | `Reply, Copy and Delete` |
 |`widgetAlignment` | The alignment of the widget | no | aligned to center right |
 |`menuItemsWidth` | The width of the menu items | no | 45% of the screen width |
+
+
+## Other Widgets
+`StackedReactions` A seperate reactions widget for displaying reactions, you can wrap this with a positioned widget.
 
 ## Contributions
 

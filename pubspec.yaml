@@ -1,6 +1,6 @@
 name: flutter_chat_reactions
 description: "A Flutter package to add reactions to your chat messages."
-version: 0.0.7
+version: 0.0.8
 homepage: https://github.com/Dexterfury/flutter_chat_reactions.git
 
 environment:
@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  animate_do: ^3.1.2
+  animate_do: ^3.3.4
 
 dev_dependencies:
   flutter_test:
