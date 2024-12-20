@@ -28,5 +28,16 @@
 ## [0.1.0]
 
 * Updated the read me file
-* Code refactoring 
+* Code refactoring
+
+## [0.1.1]
+
+* Extracted components into separate widgets
+* Added comprehensive documentation
+* Improved null safety handling
+* Added proper mounted checks in async operations
+* Added complete widget documentation
+* Improved component organization
+* Extracted reusable sub-widgets
+* Improved overall package structure and organization 
 
