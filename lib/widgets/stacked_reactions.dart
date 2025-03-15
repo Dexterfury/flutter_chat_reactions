@@ -83,7 +83,6 @@ class StackedReactions extends StatelessWidget {
                       child: Material(
                         color: Colors.transparent,
                         child: Text(
-                          
                           '+$remaining',
                           style: const TextStyle(fontSize:16),
                         ),
