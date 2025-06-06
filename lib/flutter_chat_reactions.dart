@@ -91,16 +91,7 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
         child: Container(
           width: MediaQuery.of(context).size.width * widget.menuItemsWidth,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.background,
             borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.shade500,
-                spreadRadius: 1,
-                blurRadius: 2,
-                offset: const Offset(0, 1), // changes position of shadow
-              ),
-            ],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -192,16 +183,7 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
         child: Container(
           padding: const EdgeInsets.all(5),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.background,
             borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.shade500,
-                spreadRadius: 1,
-                blurRadius: 2,
-                offset: const Offset(0, 1), // changes position of shadow
-              ),
-            ],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
