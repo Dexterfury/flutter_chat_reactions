@@ -87,7 +87,6 @@ const config = ChatReactionsConfig(
   maxReactionsToShow: 3,
   showContextMenu: false,
   enableDoubleTap: true,
-  reactionBackgroundColor: Colors.white,
 );
 
 ChatMessageWrapper(
@@ -125,7 +124,6 @@ ChatMessageWrapper(
 | `dialogPadding`           | The padding of the reactions dialog.                                     | `EdgeInsets.all(20.0)` |
 | `dialogBorderRadius`      | The border radius of the reactions dialog.                               | `null` |
 | `dialogBackgroundColor`   | The background color of the reactions dialog.                            | `null` |
-| `reactionBackgroundColor` | The background color of the reaction buttons.                            | `null` |
 | `dialogBlurSigma`         | The blur sigma for the background when the dialog is open.               | `5.0` |
 | `dismissOnTapOutside`     | Whether to dismiss the dialog when tapping outside.                      | `true` |
 | `showContextMenu`         | Whether to show the context menu.                                        | `true` |
