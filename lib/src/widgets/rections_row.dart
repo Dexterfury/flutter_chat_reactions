@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_reactions/widgets/reactions_button.dart';
+import 'package:flutter_chat_reactions/src/widgets/reactions_button.dart';
 
-/// Widget that displays the row of available reactions
 class ReactionsRow extends StatelessWidget {
   /// Creates a reactions row widget.
   const ReactionsRow({
@@ -9,15 +8,11 @@ class ReactionsRow extends StatelessWidget {
     required this.reactions,
     required this.alignment,
     required this.onReactionTap,
-    required this.clickedIndex,
-    required this.reactionClicked,
   });
 
   final List<String> reactions;
   final Alignment alignment;
   final Function(String, int) onReactionTap;
-  final int? clickedIndex;
-  final bool reactionClicked;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +42,6 @@ class ReactionsRow extends StatelessWidget {
                   reaction: reactions[i],
                   index: i,
                   onTap: onReactionTap,
-                  isClicked: reactionClicked && clickedIndex == i,
                 ),
             ],
           ),

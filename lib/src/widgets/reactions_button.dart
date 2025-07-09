@@ -9,13 +9,11 @@ class ReactionButton extends StatelessWidget {
     required this.reaction,
     required this.index,
     required this.onTap,
-    required this.isClicked,
   });
 
   final String reaction;
   final int index;
   final Function(String, int) onTap;
-  final bool isClicked;
 
   @override
   Widget build(BuildContext context) {
@@ -25,16 +23,11 @@ class ReactionButton extends StatelessWidget {
       delay: const Duration(milliseconds: 200),
       child: InkWell(
         onTap: () => onTap(reaction, index),
-        child: Pulse(
-          infinite: false,
-          duration: const Duration(milliseconds: 500),
-          animate: isClicked,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(4.0, 2.0, 4.0, 2.0),
-            child: Text(
-              reaction,
-              style: const TextStyle(fontSize: 22),
-            ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(4.0, 2.0, 4.0, 2.0),
+          child: Text(
+            reaction,
+            style: const TextStyle(fontSize: 22),
           ),
         ),
       ),

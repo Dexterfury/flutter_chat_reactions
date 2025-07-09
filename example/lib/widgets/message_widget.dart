@@ -1,14 +1,16 @@
 import 'package:example/models/message.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_reactions/widgets/stacked_reactions.dart';
+import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
 
 class MessageWidget extends StatelessWidget {
   const MessageWidget({
     super.key,
     required this.message,
+    required this.controller,
   });
 
   final Message message;
+  final ReactionsController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +30,7 @@ class MessageWidget extends StatelessWidget {
 
             //reactions
             buildReactions(
+              context,
               message.isMe,
             ),
           ],
@@ -37,20 +40,24 @@ class MessageWidget extends StatelessWidget {
   }
 
   // reactions widget
-  Widget buildReactions(bool isMe) {
+  Widget buildReactions(BuildContext context, bool isMe) {
     return isMe
         ? Positioned(
             bottom: 4,
             right: 20,
             child: StackedReactions(
-              reactions: message.reactions,
+              messageId: message.id,
+              controller: controller,
+              maxReactionsToShow: 3,
             ),
           )
         : Positioned(
             bottom: 4,
             left: 8,
             child: StackedReactions(
-              reactions: message.reactions,
+              messageId: message.id,
+              controller: controller,
+              maxReactionsToShow: 3,
             ),
           );
   }
@@ -59,8 +66,9 @@ class MessageWidget extends StatelessWidget {
   Widget buildMessage(
     BuildContext context,
   ) {
+    final hasReactions = controller.getReactionCounts(message.id).isNotEmpty;
     // padding for the message card
-    final padding = message.reactions.isNotEmpty
+    final padding = hasReactions
         ? message.isMe
             ? const EdgeInsets.only(left: 30.0, bottom: 25.0)
             : const EdgeInsets.only(right: 30.0, bottom: 25.0)
