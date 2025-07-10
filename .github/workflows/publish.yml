@@ -53,11 +53,20 @@ jobs:
         run: flutter analyze --fatal-infos
       
       # Step 6: Run tests (if available)
-      # Uncomment and modify based on your testing setup
       - name: Run tests
         run: |
           if [ -d "test" ] && [ "$(ls -A test)" ]; then
-            flutter test
+            echo "Running tests..."
+            flutter test || {
+              # Check if the failure was due to no tests found
+              if flutter test 2>&1 | grep -q "No tests were found"; then
+                echo "No active tests found, continuing with publish process"
+                exit 0
+              else
+                echo "Tests failed with actual errors"
+                exit 1
+              fi
+            }
           else
             echo "No tests found, skipping test execution"
           fi
