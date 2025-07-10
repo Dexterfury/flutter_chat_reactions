@@ -25,7 +25,7 @@ Add dependency to `pubspec.yaml`
 
 ```yaml
 dependencies:
-  flutter_chat_reactions: ^0.2.4
+  flutter_chat_reactions: ^0.2.5
 ```
 
 In your dart file, import the library:

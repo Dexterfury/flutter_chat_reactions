@@ -93,7 +93,7 @@ jobs:
             ## Changes in this release
             - Package published to pub.dev
             - Version: ${{ github.ref_name }}
-            
-            See [pub.dev](https://pub.dev/packages/chat_reactions) for installation instructions.
+      
+            See [pub.dev](https://pub.dev/packages/flutter_chat_reactions) for installation instructions.
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
