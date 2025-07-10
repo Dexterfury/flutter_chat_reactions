@@ -149,7 +149,7 @@ class StackedReactions extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         margin: const EdgeInsets.only(left: 4),
         decoration: BoxDecoration(
-          color: theme.disabledColor.withOpacity(0.2),
+          color: theme.disabledColor.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(

@@ -110,7 +110,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         );
                       },
                       onMenuItemTapped: (item) {
-                        print('menu item: ${item.label}');
+                        // print('menu item: ${item.label}');
                       },
                       alignment: message.isMe
                           ? Alignment.centerRight

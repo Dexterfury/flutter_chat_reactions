@@ -1,4 +1,4 @@
-## [0.2.0]
+## [0.2.3]
 
 * **Breaking Change:** Refactored the entire package to use a `ReactionsController` and `ChatMessageWrapper` for a more robust and flexible API.
 * Added a `ChatReactionsConfig` to allow for extensive customization of the reactions dialog and its components.
