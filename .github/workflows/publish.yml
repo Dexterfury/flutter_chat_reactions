@@ -1,50 +1,94 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+# GitHub Actions workflow for publishing Flutter packages to pub.dev
+# This workflow is triggered when version tags are pushed to the repository
+# and automatically publishes the package after running quality checks.
 
-name: Publish to pub.dev
+name: Publish Flutter Package to pub.dev
 
 on:
   push:
     tags:
-    # must align with the tag-pattern configured on pub.dev, often just replace
-      # {{version}} with [0-9]+.[0-9]+.[0-9]+*
-    # - 'v[0-9]+.[0-9]+.[0-9]+*' # tag-pattern on pub.dev: 'v{{version}}'
-    # If you prefer tags like '1.2.3', without the 'v' prefix, then use:
-    - '[0-9]+.[0-9]+.[0-9]+*' # tag-pattern on pub.dev: '{{version}}'
-    # If your repository contains multiple packages consider a pattern like:
-    # - 'my_package_name-v[0-9]+.[0-9]+.[0-9]+*'
+      # Trigger on semantic version tags (e.g., 1.0.0, 1.2.3-beta.1)
+      # This pattern matches the default pub.dev tag configuration
+      - '[0-9]+.[0-9]+.[0-9]+*'
+      
+      # Alternative patterns for different tagging strategies:
+      # - 'v[0-9]+.[0-9]+.[0-9]+*'  # For tags with 'v' prefix (v1.0.0)
+      # - 'chat_reactions-[0-9]+.[0-9]+.[0-9]+*'  # For multi-package repos
 
 jobs:
   publish:
-    permissions:
-      id-token: write # Required for authentication using OIDC
+    name: Publish to pub.dev
     runs-on: ubuntu-latest
+    
+    # Required permissions for OIDC authentication with pub.dev
+    permissions:
+      id-token: write
+      contents: read
+    
     steps:
-      - uses: actions/checkout@v4
+      # Step 1: Checkout the repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history for proper version detection
+          fetch-depth: 0
 
-      # Note: This workflow uses the latest stable version of the Dart SDK.
-      # You can specify other versions if desired, see documentation here:
-      # https://github.com/dart-lang/setup-dart/blob/main/README.md
-      # - uses: dart-lang/setup-dart@v1
-      - uses: dart-lang/setup-dart@v1
+      # Step 2: Setup Dart SDK
+      # Using the latest stable version for consistent builds
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
 
+      # Step 3: Install package dependencies
       - name: Install dependencies
         run: dart pub get
 
-      # Uncomment this step to verify the use of 'dart format' on each commit.
-      - name: Verify formatting
+      # Step 4: Verify code formatting
+      # Ensures consistent code style across the project
+      - name: Verify code formatting
         run: dart format --output=none --set-exit-if-changed .
 
-      # Consider passing '--fatal-infos' for slightly stricter analysis.
+      # Step 5: Run static analysis
+      # Checks for potential issues and enforces best practices
       - name: Analyze project source
-        run: dart analyze
+        run: dart analyze --fatal-infos
 
-      # Your project will need to have tests in test/ and a dependency on
-      # package:test for this step to succeed. Note that Flutter projects will
-      # want to change this to 'flutter test'.
-      # - name: Run tests
-      #  run: dart test
-      - name: Publish
+      # Step 6: Run tests (if available)
+      # Uncomment and modify based on your testing setup
+      - name: Run tests
+        run: |
+          if [ -d "test" ] && [ "$(ls -A test)" ]; then
+            dart test
+          else
+            echo "No tests found, skipping test execution"
+          fi
+
+      # Step 7: Verify package can be published
+      # Dry run to catch issues before actual publishing
+      - name: Verify package
+        run: dart pub publish --dry-run
+
+      # Step 8: Publish to pub.dev
+      # Uses OIDC authentication for secure publishing
+      - name: Publish to pub.dev
         run: dart pub publish --force
+
+      # Step 9: Create GitHub release (optional)
+      # Automatically creates a GitHub release when publishing succeeds
+      - name: Create GitHub Release
+        if: success()
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body: |
+            ## Changes in this release
+            - Package published to pub.dev
+            - Version: ${{ github.ref_name }}
+            
+            See [pub.dev](https://pub.dev/packages/chat_reactions) for installation instructions.
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
