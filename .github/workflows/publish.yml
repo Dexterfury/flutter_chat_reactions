@@ -35,8 +35,8 @@ jobs:
       - name: Setup Flutter SDK
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
           channel: 'stable'
+          cache: true
       
       # Step 3: Install package dependencies
       - name: Install dependencies
@@ -76,12 +76,10 @@ jobs:
       # Automatically creates a GitHub release when publishing succeeds
       - name: Create GitHub Release
         if: success()
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
           body: |
             ## Changes in this release
             - Package published to pub.dev
