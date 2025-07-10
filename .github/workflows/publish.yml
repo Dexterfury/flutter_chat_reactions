@@ -1,9 +1,7 @@
 # GitHub Actions workflow for publishing Flutter packages to pub.dev
 # This workflow is triggered when version tags are pushed to the repository
 # and automatically publishes the package after running quality checks.
-
 name: Publish Flutter Package to pub.dev
-
 on:
   push:
     tags:
@@ -14,7 +12,6 @@ on:
       # Alternative patterns for different tagging strategies:
       # - 'v[0-9]+.[0-9]+.[0-9]+*'  # For tags with 'v' prefix (v1.0.0)
       # - 'chat_reactions-[0-9]+.[0-9]+.[0-9]+*'  # For multi-package repos
-
 jobs:
   publish:
     name: Publish to pub.dev
@@ -32,49 +29,50 @@ jobs:
         with:
           # Fetch full history for proper version detection
           fetch-depth: 0
-
-      # Step 2: Setup Dart SDK
+      
+      # Step 2: Setup Flutter SDK
       # Using the latest stable version for consistent builds
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@v1
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
         with:
-          sdk: stable
-
+          flutter-version: 'stable'
+          channel: 'stable'
+      
       # Step 3: Install package dependencies
       - name: Install dependencies
-        run: dart pub get
-
+        run: flutter pub get
+      
       # Step 4: Verify code formatting
       # Ensures consistent code style across the project
       - name: Verify code formatting
         run: dart format --output=none --set-exit-if-changed .
-
+      
       # Step 5: Run static analysis
       # Checks for potential issues and enforces best practices
       - name: Analyze project source
-        run: dart analyze --fatal-infos
-
+        run: flutter analyze --fatal-infos
+      
       # Step 6: Run tests (if available)
       # Uncomment and modify based on your testing setup
       - name: Run tests
         run: |
           if [ -d "test" ] && [ "$(ls -A test)" ]; then
-            dart test
+            flutter test
           else
             echo "No tests found, skipping test execution"
           fi
-
+      
       # Step 7: Verify package can be published
       # Dry run to catch issues before actual publishing
       - name: Verify package
         run: dart pub publish --dry-run
-
+      
       # Step 8: Publish to pub.dev
       # Uses OIDC authentication for secure publishing
       - name: Publish to pub.dev
         run: dart pub publish --force
-
-      # Step 9: Create GitHub release (optional)
+      
+      # Step 9: Create GitHub Release (optional)
       # Automatically creates a GitHub release when publishing succeeds
       - name: Create GitHub Release
         if: success()
