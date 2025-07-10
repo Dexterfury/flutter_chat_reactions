@@ -1,11 +1,9 @@
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:example/models/message.dart';
 import 'package:example/widgets/bottom_chat_field.dart';
 import 'package:example/widgets/contact_info.dart';
 import 'package:example/widgets/message_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
-import 'package:flutter_chat_reactions/utilities/hero_dialog_route.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,7 +12,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -37,37 +34,32 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  // show emoji picker bottom sheet
-  void showEmojiBottomSheet({
-    required Message message,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return SizedBox(
-          height: 310,
-          child: EmojiPicker(
-            onEmojiSelected: ((category, emoji) {
-              // pop the bottom sheet
-              Navigator.pop(context);
-              addReactionToMessage(
-                message: message,
-                reaction: emoji.emoji,
-              );
-            }),
-          ),
-        );
-      },
-    );
+  final _controller = ReactionsController(currentUserId: 'user123');
+
+  @override
+  void initState() {
+    super.initState();
+    for (final message in Message.messages) {
+      for (final reaction in message.reactions) {
+        _controller.addReaction(message.id, reaction);
+      }
+    }
   }
 
   // add reaction to message
-  void addReactionToMessage({
+  void _addReactionToMessage({
     required Message message,
     required String reaction,
   }) {
-    message.reactions.add(reaction);
-    // update UI
+    _controller.addReaction(message.id, reaction);
+    setState(() {});
+  }
+
+  void _removeReactionFromMessage({
+    required Message message,
+    required String reaction,
+  }) {
+    _controller.removeReaction(message.id, reaction);
     setState(() {});
   }
 
@@ -91,63 +83,46 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Column(
             children: [
               Expanded(
-                child: // list view builder for example messages
-                    ListView.builder(
+                child: ListView.builder(
                   itemCount: Message.messages.length,
                   itemBuilder: (BuildContext context, int index) {
-                    // get message
                     final message = Message.messages[index];
-                    return GestureDetector(
-                      // wrap your message widget with a [GestureDectector] or [InkWell]
-                      onLongPress: () {
-                        // navigate with a custom [HeroDialogRoute] to [ReactionsDialogWidget]
-                        Navigator.of(context).push(
-                          HeroDialogRoute(
-                            builder: (context) {
-                              return ReactionsDialogWidget(
-                                id: message.id, // unique id for message
-                                messageWidget: MessageWidget(
-                                    message: message), // message widget
-                                onReactionTap: (reaction) {
-                                  print('reaction: $reaction');
 
-                                  if (reaction == '➕') {
-                                    // show emoji picker container
-                                    showEmojiBottomSheet(
-                                      message: message,
-                                    );
-                                  } else {
-                                    // add reaction to message
-                                    addReactionToMessage(
-                                      message: message,
-                                      reaction: reaction,
-                                    );
-                                  }
-                                },
-                                onContextMenuTap: (menuItem) {
-                                  print('menu item: $menuItem');
-                                  // handle context menu item
-                                },
-                                // align widget to the right for my message and to the left for contact message
-                                // default is [Alignment.centerRight]
-                                widgetAlignment: message.isMe
-                                    ? Alignment.centerRight
-                                    : Alignment.centerLeft,
-                              );
-                            },
-                          ),
+                    const config = ChatReactionsConfig(
+                      enableHapticFeedback: true,
+                      maxReactionsToShow: 3,
+                      enableDoubleTap: true,
+                    );
+                    return ChatMessageWrapper(
+                      messageId: message.id,
+                      controller: _controller,
+                      config: config,
+                      onReactionAdded: (reaction) {
+                        _addReactionToMessage(
+                          message: message,
+                          reaction: reaction,
                         );
                       },
-                      // wrap message with [Hero] widget
-                      child: Hero(
-                        tag: message.id,
-                        child: MessageWidget(message: message),
+                      onReactionRemoved: (reaction) {
+                        _removeReactionFromMessage(
+                          message: message,
+                          reaction: reaction,
+                        );
+                      },
+                      onMenuItemTapped: (item) {
+                        print('menu item: ${item.label}');
+                      },
+                      alignment: message.isMe
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: MessageWidget(
+                        message: message,
+                        controller: _controller,
                       ),
                     );
                   },
                 ),
               ),
-              // bottom chat input
               const Padding(
                 padding: EdgeInsets.only(top: 8.0, bottom: 8.0),
                 child: BottomChatField(),
