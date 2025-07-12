@@ -71,9 +71,22 @@ class ReactionsController extends ChangeNotifier {
   ///
   /// If the user has already reacted with the emoji, it's removed. Otherwise, it's added.
   void toggleReaction(String messageId, String emoji, {String? userName}) {
-    if (hasUserReacted(messageId, emoji)) {
-      removeReaction(messageId, emoji);
+    final reactions = _messageReactions[messageId] ?? [];
+    final userReactionIndex =
+        reactions.indexWhere((r) => r.userId == currentUserId);
+
+    if (userReactionIndex != -1) {
+      final existingReaction = reactions[userReactionIndex];
+      // If the user is selecting the same reaction, remove it.
+      if (existingReaction.emoji == emoji) {
+        removeReaction(messageId, emoji);
+      } else {
+        // If the user is selecting a different reaction, replace the old one.
+        reactions.removeAt(userReactionIndex);
+        addReaction(messageId, emoji, userName: userName);
+      }
     } else {
+      // If the user has no reaction, add the new one.
       addReaction(messageId, emoji, userName: userName);
     }
   }
