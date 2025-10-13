@@ -1,3 +1,7 @@
+## [0.2.1]
+
+* Fixed a bug where `customMenuItemBuilder` was not being used.
+
 ## [0.2.0]
 
 * **Breaking Change:** Refactored the entire package to use a `ReactionsController` and `ChatMessageWrapper` for a more robust and flexible API.

@@ -75,6 +75,7 @@ class ReactionsDialogWidget extends StatelessWidget {
                   menuItems: config.menuItems,
                   alignment: alignment,
                   onMenuItemTap: (item, _) => _handleMenuItemTap(context, item),
+                  customMenuItemBuilder: config.customMenuItemBuilder,
                 ),
               ],
             ],
@@ -100,6 +101,7 @@ class ContextMenuWidget extends StatelessWidget {
   final Alignment alignment;
   final double menuWidth;
   final Function(MenuItem, int) onMenuItemTap;
+  final Widget Function(MenuItem, VoidCallback)? customMenuItemBuilder;
 
   const ContextMenuWidget({
     super.key,
@@ -107,6 +109,7 @@ class ContextMenuWidget extends StatelessWidget {
     required this.onMenuItemTap,
     this.alignment = Alignment.centerRight,
     this.menuWidth = 0.45,
+    this.customMenuItemBuilder,
   });
 
   @override
@@ -123,48 +126,53 @@ class ContextMenuWidget extends StatelessWidget {
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: menuItems
-              .map(
-                (item) => Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () => onMenuItemTap(item, menuItems.indexOf(item)),
-                    borderRadius: BorderRadius.circular(15),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 15, vertical: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            item.label,
-                            style: TextStyle(
-                              color: item.isDestructive
-                                  ? Colors.red
-                                  : Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? Colors.white
-                                      : Colors.black,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Icon(
-                            item.icon,
+          children: menuItems.map(
+            (item) {
+              if (customMenuItemBuilder != null) {
+                return customMenuItemBuilder!(
+                  item,
+                  () => onMenuItemTap(item, menuItems.indexOf(item)),
+                );
+              }
+              return Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => onMenuItemTap(item, menuItems.indexOf(item)),
+                  borderRadius: BorderRadius.circular(15),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 15, vertical: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          item.label,
+                          style: TextStyle(
                             color: item.isDestructive
                                 ? Colors.red
                                 : Theme.of(context).brightness ==
                                         Brightness.dark
                                     ? Colors.white
                                     : Colors.black,
-                            size: 20,
+                            fontSize: 16,
                           ),
-                        ],
-                      ),
+                        ),
+                        Icon(
+                          item.icon,
+                          color: item.isDestructive
+                              ? Colors.red
+                              : Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Colors.black,
+                          size: 20,
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              )
-              .toList(),
+              );
+            },
+          ).toList(),
         ),
       ),
     );
