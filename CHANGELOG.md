@@ -1,8 +1,8 @@
-## [0.2.1]
+## [0.2.6]
 
-* Fixed a bug where `customMenuItemBuilder` was not being used.
+* Fixed an issue where a user could add multiple reactions to a single message. Now, a user can only have one reaction per message. If a user selects a new reaction, it replaces the old one. If they select the same reaction, it is removed.
 
-## [0.2.0]
+## [0.2.5]
 
 * **Breaking Change:** Refactored the entire package to use a `ReactionsController` and `ChatMessageWrapper` for a more robust and flexible API.
 * Added a `ChatReactionsConfig` to allow for extensive customization of the reactions dialog and its components.
