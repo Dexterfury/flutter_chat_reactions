@@ -18,8 +18,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  animate_do: ^4.2.0
-  emoji_picker_flutter: ^4.3.0
 
 dev_dependencies:
   flutter_test:

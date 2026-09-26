@@ -411,3 +411,11 @@ Each phase ends green in CI.
    The old API is removed.
 3. **Example gallery and `demo_script_test.dart`.**
 4. **Docs and release:** `demo-gifs.yml`, `tool/record_gifs.sh`, README rewrite, `MIGRATION.md`, Release Please wiring. The first release PR is 1.0.0. The root GIFs are deleted once the recorded GIFs merge.
+
+## 16. Implementation deviations (Plan 2)
+
+1. Presenters push a transparent `PopupRoute` on the root navigator instead of an `OverlayEntry`/`OverlayPortal`. `WidgetsBinding.handlePopRoute` gives the Android back button to observers in registration order, so the app's `Navigator` would pop the page behind an overlay entry. A route gets back, Escape (`DismissIntent`), barrier dismissal and focus scoping from `ModalRoute`. There is still no Hero, so the tag collisions stay fixed. Because the modal barrier absorbs scroll input, "dismiss on scroll" is replaced by "the list cannot scroll while the menu is open" (same as iOS). Dismiss on metrics change is kept.
+2. `CustomPresenter.builder` receives an `Animation<double>` as a third argument.
+3. `ReactionChipStyle` uses `borderRadius` (`BorderRadiusGeometry?`) instead of `shape`.
+4. `ReactionOverlayStyle.messageShadows` defaults to `[]`. A rectangular shadow around a rounded bubble looks wrong; apps can opt in.
+5. Default triggers depend on `TargetPlatform`, not `kIsWeb`, so mobile web behaves like a touch device.
