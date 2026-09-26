@@ -1,99 +1,17 @@
-# GitHub Actions workflow for publishing Flutter packages to pub.dev
-# This workflow is triggered when version tags are pushed to the repository
-# and automatically publishes the package after running quality checks.
-name: Publish Flutter Package to pub.dev
+# Publishes to pub.dev when a version tag (e.g. 1.0.0 or 1.1.0-beta.1) is pushed.
+# Authentication uses GitHub OIDC; no pub.dev secrets are stored in the repo.
+# One-time setup (maintainer): see docs/superpowers/specs/2026-09-26-v1-modernization-design.md §14.5.
+name: Publish to pub.dev
+
 on:
   push:
     tags:
-      # Trigger on semantic version tags (e.g., 1.0.0, 1.2.3-beta.1)
-      # This pattern matches the default pub.dev tag configuration
       - '[0-9]+.[0-9]+.[0-9]+*'
-      
-      # Alternative patterns for different tagging strategies:
-      # - 'v[0-9]+.[0-9]+.[0-9]+*'  # For tags with 'v' prefix (v1.0.0)
-      # - 'chat_reactions-[0-9]+.[0-9]+.[0-9]+*'  # For multi-package repos
+
 jobs:
   publish:
-    name: Publish to pub.dev
-    runs-on: ubuntu-latest
-    
-    # Required permissions for OIDC authentication with pub.dev
     permissions:
       id-token: write
-      contents: read
-    
-    steps:
-      # Step 1: Checkout the repository code
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          # Fetch full history for proper version detection
-          fetch-depth: 0
-      
-      # Step 2: Setup Flutter SDK
-      # Using the latest stable version for consistent builds
-      - name: Setup Flutter SDK
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          cache: true
-      
-      # Step 3: Install package dependencies
-      - name: Install dependencies
-        run: flutter pub get
-      
-      # Step 4: Verify code formatting
-      # Ensures consistent code style across the project
-      - name: Verify code formatting
-        run: dart format --output=none --set-exit-if-changed .
-      
-      # Step 5: Run static analysis
-      # Checks for potential issues and enforces best practices
-      - name: Analyze project source
-        run: flutter analyze --fatal-infos
-      
-      # Step 6: Run tests (if available)
-      - name: Run tests
-        run: |
-          if [ -d "test" ] && [ "$(ls -A test)" ]; then
-            echo "Running tests..."
-            flutter test || {
-              # Check if the failure was due to no tests found
-              if flutter test 2>&1 | grep -q "No tests were found"; then
-                echo "No active tests found, continuing with publish process"
-                exit 0
-              else
-                echo "Tests failed with actual errors"
-                exit 1
-              fi
-            }
-          else
-            echo "No tests found, skipping test execution"
-          fi
-      
-      # Step 7: Verify package can be published
-      # Dry run to catch issues before actual publishing
-      - name: Verify package
-        run: dart pub publish --dry-run
-      
-      # Step 8: Publish to pub.dev
-      # Uses OIDC authentication for secure publishing
-      - name: Publish to pub.dev
-        run: dart pub publish --force
-      
-      # Step 9: Create GitHub Release (optional)
-      # Automatically creates a GitHub release when publishing succeeds
-      - name: Create GitHub Release
-        if: success()
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          body: |
-            ## Changes in this release
-            - Package published to pub.dev
-            - Version: ${{ github.ref_name }}
-      
-            See [pub.dev](https://pub.dev/packages/flutter_chat_reactions) for installation instructions.
-          draft: false
-          prerelease: ${{ contains(github.ref_name, '-') }}
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    with:
+      environment: pub.dev
