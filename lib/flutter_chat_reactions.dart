@@ -12,3 +12,6 @@ export 'src/models/reaction_action.dart';
 export 'src/models/reaction_policy.dart';
 export 'src/models/reaction_summary.dart';
 export 'src/models/reaction_user.dart';
+export 'src/theme/adaptive.dart' show ReactionHaptics, ReactionsVisualStyle;
+export 'src/theme/chat_reactions_theme.dart';
+export 'src/theme/reaction_styles.dart';
