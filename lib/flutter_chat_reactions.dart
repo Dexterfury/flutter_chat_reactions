@@ -4,3 +4,9 @@
 /// result with [ReactionsSummaryView]. Reaction data is owned by your app; the
 /// optional [ReactionsController] covers apps without their own state layer.
 library;
+
+export 'src/models/reaction.dart';
+export 'src/models/reaction_action.dart';
+export 'src/models/reaction_policy.dart';
+export 'src/models/reaction_summary.dart';
+export 'src/models/reaction_user.dart';
