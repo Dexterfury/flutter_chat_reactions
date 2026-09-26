@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Raised to 90 at the end of Plan 2.
+  MIN_COVERAGE: 0
+  # Lowered to 10 (score >= 150/160) at the end of Plan 2.
+  PANA_MAX_MISSING_POINTS: 40
+
+jobs:
+  checks:
+    name: Checks (Flutter ${{ matrix.flutter }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        flutter: ['3.32.x', 'stable']
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          # Empty for 'stable' (latest stable release), pinned otherwise.
+          flutter-version: ${{ matrix.flutter != 'stable' && matrix.flutter || '' }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        if: matrix.flutter == 'stable'
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze
+        run: flutter analyze --fatal-infos
+
+      - name: Test with coverage
+        run: flutter test --coverage
+
+      - name: Enforce coverage floor
+        if: matrix.flutter == 'stable'
+        run: dart run tool/check_coverage.dart "$MIN_COVERAGE"
+
+      - name: Upload coverage
+        if: matrix.flutter == 'stable'
+        uses: actions/upload-artifact@v4
+        with:
+          name: lcov
+          path: coverage/lcov.info
+
+      - name: Publish dry run
+        if: matrix.flutter == 'stable'
+        run: dart pub publish --dry-run
+
+  pana:
+    name: Package score (pana)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Run pana
+        run: |
+          dart pub global activate pana
+          dart pub global run pana --no-warning --exit-code-threshold "$PANA_MAX_MISSING_POINTS" .
+
+  example:
+    name: Build example (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [apk, web]
+    defaults:
+      run:
+        working-directory: example
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        if: matrix.target == 'apk'
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Build APK
+        if: matrix.target == 'apk'
+        run: flutter build apk --debug
+      - name: Build web
+        if: matrix.target == 'web'
+        run: flutter build web
