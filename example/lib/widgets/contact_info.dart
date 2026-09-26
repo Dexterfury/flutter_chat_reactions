@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ContactInfo extends StatelessWidget {
-  const ContactInfo({
-    super.key,
-  });
+  const ContactInfo({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,14 +14,8 @@ class ContactInfo extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Dexter',
-              style: TextStyle(fontSize: 16),
-            ),
-            Text(
-              'Online',
-              style: TextStyle(fontSize: 12),
-            ),
+            Text('Dexter', style: TextStyle(fontSize: 16)),
+            Text('Online', style: TextStyle(fontSize: 12)),
           ],
         ),
       ],

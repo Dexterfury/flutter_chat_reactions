@@ -291,7 +291,7 @@ Internal lists are never exposed, and the collections passed to `setReactions` a
 ## 10. Packaging and tooling
 
 - `pubspec.yaml`:
-  - `sdk: ^3.6.0`, `flutter: ">=3.27.0"`
+  - `sdk: ^3.8.0`, `flutter: ">=3.32.0"` (raised from 3.6/3.27 because `flutter_lints` 6 requires Dart 3.8)
   - no runtime dependencies besides `flutter`
   - dev dependencies: `flutter_test` and `flutter_lints: ^6.0.0`
   - `topics: [chat, reactions, emoji, context-menu, messaging]`
@@ -355,7 +355,7 @@ Every demo is selectable through `--dart-define=DEMO=<messenger|team|telegram|cu
 ## 14. CI/CD (`.github/workflows/`)
 
 ### 14.1 `ci.yml`
-Runs on pull requests and on pushes to `main`. It uses a matrix of Flutter `3.27.x` and `stable`, and the steps are:
+Runs on pull requests and on pushes to `main`. It uses a matrix of Flutter `3.32.x` and `stable`, and the steps are:
 1. `dart format --set-exit-if-changed .`
 2. `flutter analyze --fatal-infos`
 3. `flutter test --coverage` with a coverage threshold check; the lcov file is uploaded as an artifact

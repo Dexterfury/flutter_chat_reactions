@@ -59,8 +59,9 @@ class StackedReactions extends StatelessWidget {
         final sortedReactions = reactionCounts.entries.toList()
           ..sort((a, b) => b.value.compareTo(a.value));
 
-        final reactionsToShow =
-            sortedReactions.take(maxReactionsToShow).toList();
+        final reactionsToShow = sortedReactions
+            .take(maxReactionsToShow)
+            .toList();
         final remaining = sortedReactions.length - reactionsToShow.length;
 
         return GestureDetector(
@@ -89,7 +90,12 @@ class StackedReactions extends StatelessWidget {
   }
 
   Widget _buildReactionWidget(
-      BuildContext context, String emoji, int count, int index, Color color) {
+    BuildContext context,
+    String emoji,
+    int count,
+    int index,
+    Color color,
+  ) {
     final isUserReacted = controller.hasUserReacted(messageId, emoji);
     final leftOffset = size - stackedValue;
 
@@ -98,13 +104,19 @@ class StackedReactions extends StatelessWidget {
         left: direction == TextDirection.ltr ? leftOffset * index : 0,
         right: direction == TextDirection.rtl ? leftOffset * index : 0,
       ),
-      child: customReactionBuilder?.call(emoji, count, isUserReacted) ??
+      child:
+          customReactionBuilder?.call(emoji, count, isUserReacted) ??
           _defaultReactionWidget(context, emoji, count, isUserReacted, color),
     );
   }
 
-  Widget _defaultReactionWidget(BuildContext context, String emoji, int count,
-      bool isUserReacted, Color color) {
+  Widget _defaultReactionWidget(
+    BuildContext context,
+    String emoji,
+    int count,
+    bool isUserReacted,
+    Color color,
+  ) {
     // final theme = Theme.of(context);
     // final color = isUserReacted ? theme.primaryColor : theme.disabledColor;
 

@@ -50,7 +50,9 @@ class ReactionsDialogWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BackdropFilter(
       filter: ImageFilter.blur(
-          sigmaX: config.dialogBlurSigma, sigmaY: config.dialogBlurSigma),
+        sigmaX: config.dialogBlurSigma,
+        sigmaY: config.dialogBlurSigma,
+      ),
       child: Center(
         child: Padding(
           padding: config.dialogPadding,
@@ -126,53 +128,52 @@ class ContextMenuWidget extends StatelessWidget {
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: menuItems.map(
-            (item) {
-              if (customMenuItemBuilder != null) {
-                return customMenuItemBuilder!(
-                  item,
-                  () => onMenuItemTap(item, menuItems.indexOf(item)),
-                );
-              }
-              return Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => onMenuItemTap(item, menuItems.indexOf(item)),
-                  borderRadius: BorderRadius.circular(15),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 15, vertical: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          item.label,
-                          style: TextStyle(
-                            color: item.isDestructive
-                                ? Colors.red
-                                : Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? Colors.white
-                                    : Colors.black,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Icon(
-                          item.icon,
+          children: menuItems.map((item) {
+            if (customMenuItemBuilder != null) {
+              return customMenuItemBuilder!(
+                item,
+                () => onMenuItemTap(item, menuItems.indexOf(item)),
+              );
+            }
+            return Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => onMenuItemTap(item, menuItems.indexOf(item)),
+                borderRadius: BorderRadius.circular(15),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 10,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        item.label,
+                        style: TextStyle(
                           color: item.isDestructive
                               ? Colors.red
                               : Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.white
-                                  : Colors.black,
-                          size: 20,
+                              ? Colors.white
+                              : Colors.black,
+                          fontSize: 16,
                         ),
-                      ],
-                    ),
+                      ),
+                      Icon(
+                        item.icon,
+                        color: item.isDestructive
+                            ? Colors.red
+                            : Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.black,
+                        size: 20,
+                      ),
+                    ],
                   ),
                 ),
-              );
-            },
-          ).toList(),
+              ),
+            );
+          }).toList(),
         ),
       ),
     );

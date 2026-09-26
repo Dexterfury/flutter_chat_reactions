@@ -24,15 +24,10 @@ class MessageWidget extends StatelessWidget {
         child: Stack(
           children: [
             // message
-            buildMessage(
-              context,
-            ),
+            buildMessage(context),
 
             //reactions
-            buildReactions(
-              context,
-              message.isMe,
-            ),
+            buildReactions(context, message.isMe),
           ],
         ),
       ),
@@ -63,15 +58,13 @@ class MessageWidget extends StatelessWidget {
   }
 
   // message widget
-  Widget buildMessage(
-    BuildContext context,
-  ) {
+  Widget buildMessage(BuildContext context) {
     final hasReactions = controller.getReactionCounts(message.id).isNotEmpty;
     // padding for the message card
     final padding = hasReactions
         ? message.isMe
-            ? const EdgeInsets.only(left: 30.0, bottom: 25.0)
-            : const EdgeInsets.only(right: 30.0, bottom: 25.0)
+              ? const EdgeInsets.only(left: 30.0, bottom: 25.0)
+              : const EdgeInsets.only(right: 30.0, bottom: 25.0)
         : const EdgeInsets.only(bottom: 0.0);
     // border radius for the message card
     final borderRadius = message.isMe
@@ -98,9 +91,7 @@ class MessageWidget extends StatelessWidget {
       padding: padding,
       child: Card(
         elevation: 5,
-        shape: RoundedRectangleBorder(
-          borderRadius: borderRadius,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: borderRadius),
         color: cardColor,
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -110,22 +101,14 @@ class MessageWidget extends StatelessWidget {
                   ? CrossAxisAlignment.end
                   : CrossAxisAlignment.start,
               children: [
-                Text(
-                  message.message,
-                  style: TextStyle(
-                    color: textColor,
-                  ),
-                ),
+                Text(message.message, style: TextStyle(color: textColor)),
                 const SizedBox(height: 5),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       message.timeSent,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: textColor,
-                      ),
+                      style: TextStyle(fontSize: 12, color: textColor),
                     ),
                     const SizedBox(width: 5),
                     message.isMe

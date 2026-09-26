@@ -36,13 +36,10 @@ class ChatMessageWrapper extends StatelessWidget {
     if (reaction == '➕') {
       showModalBottomSheet(
         context: context,
-        builder: (context) => config.emojiPickerBuilder!(
-          context,
-          (emoji) {
-            Navigator.pop(context);
-            _addReaction(emoji);
-          },
-        ),
+        builder: (context) => config.emojiPickerBuilder!(context, (emoji) {
+          Navigator.pop(context);
+          _addReaction(emoji);
+        }),
       );
     } else {
       _toggleReaction(reaction);
@@ -91,14 +88,13 @@ class ChatMessageWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onLongPress:
-          config.enableLongPress ? () => _showReactionsDialog(context) : null,
-      onDoubleTap:
-          config.enableDoubleTap ? () => _showReactionsDialog(context) : null,
-      child: Hero(
-        tag: messageId,
-        child: child,
-      ),
+      onLongPress: config.enableLongPress
+          ? () => _showReactionsDialog(context)
+          : null,
+      onDoubleTap: config.enableDoubleTap
+          ? () => _showReactionsDialog(context)
+          : null,
+      child: Hero(tag: messageId, child: child),
     );
   }
 }

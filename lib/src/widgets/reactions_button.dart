@@ -25,10 +25,7 @@ class ReactionButton extends StatelessWidget {
         onTap: () => onTap(reaction, index),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(4.0, 2.0, 4.0, 2.0),
-          child: Text(
-            reaction,
-            style: const TextStyle(fontSize: 22),
-          ),
+          child: Text(reaction, style: const TextStyle(fontSize: 22)),
         ),
       ),
     );

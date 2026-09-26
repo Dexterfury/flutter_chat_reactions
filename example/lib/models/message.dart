@@ -82,9 +82,7 @@ class Message {
       id: '10',
       message: 'Goodbye',
       timeSent: '10:09 AM',
-      reactions: [
-        '👍',
-      ],
+      reactions: ['👍'],
       isMe: true,
     ),
   ];

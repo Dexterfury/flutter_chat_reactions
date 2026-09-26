@@ -1,5 +1,3 @@
-library flutter_chat_reactions;
-
 export 'src/models/reaction.dart';
 export 'src/models/chat_reactions_config.dart';
 export 'src/models/menu_item.dart';

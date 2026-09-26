@@ -63,39 +63,6 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {});
   }
 
-  Widget _customMenuItemBuilder(MenuItem item, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-        decoration: BoxDecoration(
-          color: item.isDestructive
-              ? Colors.red.withValues(alpha: 0.1)
-              : Colors.grey.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              item.label,
-              style: TextStyle(
-                color: item.isDestructive ? Colors.red : Colors.black,
-                fontSize: 16,
-              ),
-            ),
-            Icon(
-              item.icon,
-              color: item.isDestructive ? Colors.red : Colors.black,
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,10 +76,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(
-            left: 8.0,
-            right: 8.0,
-          ),
+          padding: const EdgeInsets.only(left: 8.0, right: 8.0),
           child: Column(
             children: [
               Expanded(
@@ -121,11 +85,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   itemBuilder: (BuildContext context, int index) {
                     final message = Message.messages[index];
 
-                    final config = ChatReactionsConfig(
+                    const config = ChatReactionsConfig(
                       enableHapticFeedback: true,
                       maxReactionsToShow: 3,
                       enableDoubleTap: true,
-                      //customMenuItemBuilder: _customMenuItemBuilder,
                     );
                     return ChatMessageWrapper(
                       messageId: message.id,

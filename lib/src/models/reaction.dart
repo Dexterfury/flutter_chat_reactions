@@ -14,18 +14,18 @@ class Reaction {
   });
 
   Map<String, dynamic> toJson() => {
-        ReactionsConstants.emoji: emoji,
-        ReactionsConstants.userId: userId,
-        ReactionsConstants.timestamp: timestamp.toIso8601String(),
-        ReactionsConstants.userName: userName,
-      };
+    ReactionsConstants.emoji: emoji,
+    ReactionsConstants.userId: userId,
+    ReactionsConstants.timestamp: timestamp.toIso8601String(),
+    ReactionsConstants.userName: userName,
+  };
 
   factory Reaction.fromJson(Map<String, dynamic> json) => Reaction(
-        emoji: json[ReactionsConstants.emoji],
-        userId: json[ReactionsConstants.userId],
-        timestamp: DateTime.parse(json[ReactionsConstants.timestamp]),
-        userName: json[ReactionsConstants.userName],
-      );
+    emoji: json[ReactionsConstants.emoji],
+    userId: json[ReactionsConstants.userId],
+    timestamp: DateTime.parse(json[ReactionsConstants.timestamp]),
+    userName: json[ReactionsConstants.userName],
+  );
 
   @override
   bool operator ==(Object other) =>

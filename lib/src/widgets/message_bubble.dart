@@ -18,10 +18,7 @@ class MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: alignment,
-      child: Hero(
-        tag: id,
-        child: messageWidget,
-      ),
+      child: Hero(tag: id, child: messageWidget),
     );
   }
 }

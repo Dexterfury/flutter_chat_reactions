@@ -48,12 +48,14 @@ class ReactionsController extends ChangeNotifier {
     );
 
     if (existingIndex == -1) {
-      reactions.add(Reaction(
-        emoji: emoji,
-        userId: currentUserId,
-        timestamp: DateTime.now(),
-        userName: userName,
-      ));
+      reactions.add(
+        Reaction(
+          emoji: emoji,
+          userId: currentUserId,
+          timestamp: DateTime.now(),
+          userName: userName,
+        ),
+      );
       _messageReactions[messageId] = reactions;
       notifyListeners();
     }
@@ -72,8 +74,9 @@ class ReactionsController extends ChangeNotifier {
   /// If the user has already reacted with the emoji, it's removed. Otherwise, it's added.
   void toggleReaction(String messageId, String emoji, {String? userName}) {
     final reactions = _messageReactions[messageId] ?? [];
-    final userReactionIndex =
-        reactions.indexWhere((r) => r.userId == currentUserId);
+    final userReactionIndex = reactions.indexWhere(
+      (r) => r.userId == currentUserId,
+    );
 
     if (userReactionIndex != -1) {
       final existingReaction = reactions[userReactionIndex];

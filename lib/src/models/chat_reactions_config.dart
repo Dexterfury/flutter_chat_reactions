@@ -21,7 +21,7 @@ class ChatReactionsConfig {
   final bool dismissOnTapOutside;
   final bool showContextMenu;
   final Widget Function(BuildContext, Function(String) onEmojiSelected)?
-      emojiPickerBuilder;
+  emojiPickerBuilder;
   final Widget Function(String, bool)? customReactionBuilder;
   final Widget Function(MenuItem, VoidCallback)? customMenuItemBuilder;
 
@@ -31,7 +31,10 @@ class ChatReactionsConfig {
       MenuItem(label: 'Reply', icon: Icons.reply),
       MenuItem(label: 'Copy', icon: Icons.copy),
       MenuItem(
-          label: 'Delete', icon: Icons.delete_forever, isDestructive: true),
+        label: 'Delete',
+        icon: Icons.delete_forever,
+        isDestructive: true,
+      ),
     ],
     this.animationDuration = const Duration(milliseconds: 300),
     this.dialogTransitionDuration = const Duration(milliseconds: 300),
@@ -73,7 +76,7 @@ class ChatReactionsConfig {
     bool? dismissOnTapOutside,
     bool? showContextMenu,
     Widget Function(BuildContext, Function(String) onEmojiSelected)?
-        emojiPickerBuilder,
+    emojiPickerBuilder,
     Widget Function(String, bool)? customReactionBuilder,
     Widget Function(MenuItem, VoidCallback)? customMenuItemBuilder,
   }) {
@@ -108,7 +111,9 @@ class ChatReactionsConfig {
 }
 
 Widget _defaultEmojiPickerBuilder(
-    BuildContext context, Function(String) onEmojiSelected) {
+  BuildContext context,
+  Function(String) onEmojiSelected,
+) {
   return EmojiPicker(
     onEmojiSelected: (category, emoji) {
       onEmojiSelected(emoji.emoji);
