@@ -5,6 +5,8 @@
 /// optional [ReactionsController] covers apps without their own state layer.
 library;
 
+export 'src/controller/reaction_change.dart';
+export 'src/controller/reactions_controller.dart';
 export 'src/models/reaction.dart';
 export 'src/models/reaction_action.dart';
 export 'src/models/reaction_policy.dart';
