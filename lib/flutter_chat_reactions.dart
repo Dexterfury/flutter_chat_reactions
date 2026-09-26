@@ -8,6 +8,8 @@ library;
 export 'src/controller/reaction_change.dart';
 export 'src/controller/reactions_controller.dart';
 export 'src/l10n/chat_reactions_localizations.dart';
+export 'src/layout/anchored_layout.dart';
+export 'src/layout/reaction_alignment.dart';
 export 'src/models/reaction.dart';
 export 'src/models/reaction_action.dart';
 export 'src/models/reaction_policy.dart';
