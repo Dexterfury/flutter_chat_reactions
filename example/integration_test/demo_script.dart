@@ -16,7 +16,10 @@ const Duration beat = Duration(milliseconds: 700);
 const Duration linger = Duration(milliseconds: 1500);
 
 /// Scripts for every demo that has one.
-final Map<DemoId, DemoScript> demoScripts = {DemoId.quickStart: _quickStart};
+final Map<DemoId, DemoScript> demoScripts = {
+  DemoId.quickStart: _quickStart,
+  DemoId.messenger: _messenger,
+};
 
 /// Runs [id]'s script.
 Future<void> runDemoScript(
@@ -66,5 +69,22 @@ Future<void> _quickStart(WidgetTester tester, Pace pace) async {
   await openMenu(tester, 'm1', pace);
   await tapAndPace(tester, reactionInBar('😮'), pace);
   expectInSummary('m1', find.text('😮'));
+  await pace(linger);
+}
+
+Future<void> _messenger(WidgetTester tester, Pace pace) async {
+  await pace(beat);
+  // Priya's message already has your ❤️: pick 😂 to replace it.
+  await openMenu(tester, 'm3', pace);
+  await tapAndPace(tester, reactionInBar('😂'), pace);
+  expectInSummary('m3', find.text('😂'));
+  // Change your mind.
+  await openMenu(tester, 'm3', pace);
+  await tapAndPace(tester, reactionInBar('😮'), pace);
+  expectInSummary('m3', find.text('😮'));
+  // Run an action: delete your own message.
+  await openMenu(tester, 'm5', pace);
+  await tapAndPace(tester, find.text('Delete'), pace);
+  expect(messageFinder('m5'), findsNothing);
   await pace(linger);
 }
