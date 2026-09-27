@@ -20,6 +20,7 @@ final Map<DemoId, DemoScript> demoScripts = {
   DemoId.quickStart: _quickStart,
   DemoId.messenger: _messenger,
   DemoId.team: _team,
+  DemoId.telegram: _telegram,
 };
 
 /// Runs [id]'s script.
@@ -106,5 +107,19 @@ Future<void> _team(WidgetTester tester, Pace pace) async {
     pace,
   );
   expectInSummary('m2', find.text('3'));
+  await pace(linger);
+}
+
+Future<void> _telegram(WidgetTester tester, Pace pace) async {
+  await pace(beat);
+  // The sheet shows who reacted before you pick.
+  await openMenu(tester, 'm2', pace);
+  await pace(beat);
+  await tapAndPace(tester, reactionInBar('🙏'), pace);
+  expectInSummary('m2', find.text('🙏'));
+  // Run an action: pin a message.
+  await openMenu(tester, 'm1', pace);
+  await tapAndPace(tester, find.text('Pin'), pace);
+  expect(find.byKey(const ValueKey('pinned-banner')), findsOneWidget);
   await pace(linger);
 }
