@@ -8,6 +8,9 @@
 #   SIMULATOR_UDID=<udid> tool/record_gifs.sh
 #   RECORD_LOG_DIR=<dir> tool/record_gifs.sh   # keep per-run logs after exit
 #   RUN_TIMEOUT=<seconds> tool/record_gifs.sh  # per-demo timeout (default 900)
+#
+# A failed run leaves <demo>-<theme>.log, a -failure.png screenshot and the
+# partial .mp4 in RECORD_LOG_DIR.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -105,6 +108,33 @@ mkdir -p "$OUT"
 cd "$ROOT/example"
 flutter pub get >/dev/null
 
+# The example app's iOS bundle id (Runner's PRODUCT_BUNDLE_IDENTIFIER), used
+# to stop the app after each run so the next one starts clean.
+APP_BUNDLE_ID="$(sed -n 's/.*PRODUCT_BUNDLE_IDENTIFIER = \([^;]*\);.*/\1/p' \
+  "$ROOT/example/ios/Runner.xcodeproj/project.pbxproj" | tr -d '\r' |
+  grep -v RunnerTests | head -n 1 || true)"
+# `flutter test` output lines that mean the run failed. The expanded reporter
+# prints "Test failed." / "Some tests failed."; the github reporter (the
+# default on GitHub Actions) prints "0 tests passed, 1 failed.".
+FAIL_PATTERN='Test failed\.|Some tests failed|tests? passed, [0-9]+ failed'
+
+# Sends SIGTERM to $1 and its children, waits up to $2 seconds for it to exit,
+# then SIGKILLs whatever is left.
+stop_process() {
+  local pid="$1" grace="$2" waited=0
+  kill -0 "$pid" 2>/dev/null || return 0
+  pkill -TERM -P "$pid" 2>/dev/null || true
+  kill -TERM "$pid" 2>/dev/null || true
+  while kill -0 "$pid" 2>/dev/null && [ "$waited" -lt "$grace" ]; do
+    sleep 1
+    waited=$((waited + 1))
+  done
+  if kill -0 "$pid" 2>/dev/null; then
+    pkill -9 -P "$pid" 2>/dev/null || true
+    kill -9 "$pid" 2>/dev/null || true
+  fi
+}
+
 record() {
   local demo="$1" theme="$2"
   local log="$LOG_DIR/$demo-$theme.log"
@@ -112,26 +142,25 @@ record() {
   local gif="$OUT/${demo}_${theme}.gif"
   local rec_pid="" test_pid size
   local run_timeout="${RUN_TIMEOUT:-900}"
-  local start timed_out=0 waited
+  local start timed_out=0 failed=0 waited
   echo "==> $demo ($theme)"
   xcrun simctl ui "$UDID" appearance "$theme"
   flutter test integration_test/demo_script_test.dart -d "$UDID" \
+    --reporter expanded \
     --dart-define=DEMO="$demo" --dart-define=THEME="$theme" >"$log" 2>&1 &
   test_pid=$!
   start="$SECONDS"
-  # Poll until the run is over: the test process exited, a pass/fail line
-  # (or DEMO_SCRIPT_END) shows up in the log, or the per-run timeout elapses
-  # -- whichever comes first. `flutter test` on a simulator does not always
-  # exit on its own once the Dart test body is done (a hung run must not
-  # block the rest of the demos), so we can't just `wait` for it.
+  # Poll until the run is over: the test process exited, DEMO_SCRIPT_END or a
+  # failure line shows up in the log, or the per-run timeout elapses --
+  # whichever comes first. `flutter test` on a simulator does not always exit
+  # on its own once the Dart test body is done (a hung run must not block the
+  # rest of the demos), so we can't just `wait` for it.
   while kill -0 "$test_pid" 2>/dev/null; do
     if [ -z "$rec_pid" ] && grep -qs DEMO_SCRIPT_START "$log"; then
       xcrun simctl io "$UDID" recordVideo --codec=h264 --force "$video" &
       rec_pid=$!
     fi
-    if grep -Eqs \
-      'DEMO_SCRIPT_END|All tests passed!|tests passed, |Some tests failed|Test failed\.' \
-      "$log"; then
+    if grep -Eqs "DEMO_SCRIPT_END|All tests passed!|$FAIL_PATTERN" "$log"; then
       break
     fi
     if [ "$((SECONDS - start))" -ge "$run_timeout" ]; then
@@ -142,33 +171,58 @@ record() {
     sleep 0.2
   done
 
-  # Stop the recording (best-effort: it may never have started, e.g. on a
-  # failure before DEMO_SCRIPT_START).
-  if [ -n "$rec_pid" ]; then
-    kill -INT "$rec_pid" 2>/dev/null || true
-    wait "$rec_pid" 2>/dev/null || true
+  # Pass only if the script reached its end and no failure was reported. The
+  # exit code is not used: a hung run has to be killed, and a killed process's
+  # status says nothing about the demo. (Checked again after the process has
+  # exited, since failure lines can follow DEMO_SCRIPT_END.)
+  if [ "$timed_out" -eq 1 ] || ! grep -qs DEMO_SCRIPT_END "$log" ||
+    grep -Eqs "$FAIL_PATTERN" "$log"; then
+    failed=1
+    # Capture what the simulator shows before anything is torn down.
+    xcrun simctl io "$UDID" screenshot "$LOG_DIR/$demo-$theme-failure.png" \
+      >/dev/null 2>&1 || true
   fi
 
-  # Give flutter test up to 60s to exit on its own now that the run is over;
-  # otherwise kill it and any children it spawned (e.g. xcodebuild/the test
-  # runner) so a hung or timed-out run can never block the remaining demos.
+  # Stop the recording (best-effort: it may never have started, e.g. on a
+  # failure before DEMO_SCRIPT_START). SIGINT makes simctl finalize the file.
+  if [ -n "$rec_pid" ]; then
+    kill -INT "$rec_pid" 2>/dev/null || true
+    waited=0
+    while kill -0 "$rec_pid" 2>/dev/null && [ "$waited" -lt 10 ]; do
+      sleep 1
+      waited=$((waited + 1))
+    done
+    kill -9 "$rec_pid" 2>/dev/null || true
+    wait "$rec_pid" 2>/dev/null || true
+  fi
+  if [ "$failed" -eq 1 ] && [ -f "$video" ]; then
+    # $WORK is deleted on exit; keep the partial video with the logs.
+    cp "$video" "$LOG_DIR/" 2>/dev/null || true
+  fi
+
+  # Give flutter test up to 60s to exit on its own now that the run is over
+  # (right away on failure); then stop it and any children it spawned (e.g.
+  # xcodebuild) so a hung or timed-out run can never block the remaining
+  # demos, and stop the app so the next run starts clean.
   waited=0
-  while kill -0 "$test_pid" 2>/dev/null && [ "$waited" -lt 60 ]; do
+  while [ "$failed" -eq 0 ] && kill -0 "$test_pid" 2>/dev/null &&
+    [ "$waited" -lt 60 ]; do
     sleep 1
     waited=$((waited + 1))
   done
   if kill -0 "$test_pid" 2>/dev/null; then
-    echo "warning: flutter test for $demo ($theme) did not exit, killing it" >&2
-    pkill -P "$test_pid" 2>/dev/null || true
-    kill -9 "$test_pid" 2>/dev/null || true
+    echo "warning: flutter test for $demo ($theme) did not exit, stopping it" >&2
+    stop_process "$test_pid" 5
   fi
   wait "$test_pid" 2>/dev/null || true
+  if [ -n "$APP_BUNDLE_ID" ]; then
+    xcrun simctl terminate "$UDID" "$APP_BUNDLE_ID" >/dev/null 2>&1 || true
+  fi
 
-  # Decide pass/fail from the log, not the exit code: once we've had to kill
-  # a hung or timed-out run, its exit status no longer reflects whether the
-  # demo script actually passed.
-  if [ "$timed_out" -eq 1 ] || ! grep -qs 'All tests passed!' "$log" ||
-    ! grep -qs DEMO_SCRIPT_END "$log"; then
+  if [ "$failed" -eq 0 ] && grep -Eqs "$FAIL_PATTERN" "$log"; then
+    failed=1
+  fi
+  if [ "$failed" -eq 1 ]; then
     cat "$log"
     echo "error: demo script failed: $demo ($theme)" >&2
     return 1
