@@ -17,6 +17,7 @@ export 'src/models/reaction_summary.dart';
 export 'src/models/reaction_user.dart';
 export 'src/presenters/bottom_sheet_presenter.dart';
 export 'src/presenters/custom_presenter.dart';
+export 'src/presenters/focused_overlay_presenter.dart';
 export 'src/presenters/reactions_menu_context.dart';
 export 'src/presenters/reactions_presenter.dart';
 export 'src/theme/adaptive.dart' show ReactionHaptics, ReactionsVisualStyle;
