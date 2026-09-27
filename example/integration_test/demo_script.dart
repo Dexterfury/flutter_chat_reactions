@@ -22,6 +22,7 @@ final Map<DemoId, DemoScript> demoScripts = {
   DemoId.team: _team,
   DemoId.telegram: _telegram,
   DemoId.custom: _custom,
+  DemoId.theming: _theming,
 };
 
 /// Runs [id]'s script.
@@ -135,4 +136,21 @@ Future<void> _custom(WidgetTester tester, Pace pace) async {
   await tapAndPace(tester, find.byKey(const ValueKey('radial-😂')), pace);
   expectInSummary('m3', find.text('😂'));
   await pace(linger);
+}
+
+Future<void> _theming(WidgetTester tester, Pace pace) async {
+  await pace(beat);
+  await openMenu(tester, 'm1', pace);
+  await tapAndPace(tester, reactionInBar('❤️'), pace);
+  await tapAndPace(tester, find.text('Dark'), pace);
+  await tapAndPace(tester, find.text('Cupertino'), pace);
+  await openMenu(tester, 'm1', pace);
+  await pace(beat);
+  await tapAndPace(tester, reactionInBar('😮'), pace);
+  expectInSummary('m1', find.text('😮'));
+  await tapAndPace(tester, find.byKey(const ValueKey('control-rtl')), pace);
+  await openMenu(tester, 'm2', pace);
+  await pace(linger);
+  await tester.tapAt(const Offset(8, 830));
+  await pace(beat);
 }
