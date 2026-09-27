@@ -18,3 +18,6 @@ export 'src/models/reaction_user.dart';
 export 'src/theme/adaptive.dart' show ReactionHaptics, ReactionsVisualStyle;
 export 'src/theme/chat_reactions_theme.dart';
 export 'src/theme/reaction_styles.dart';
+export 'src/widgets/emoji.dart';
+export 'src/widgets/reaction_action_menu.dart';
+export 'src/widgets/reaction_bar.dart';
