@@ -162,4 +162,26 @@ void main() {
     expect(dark.isCupertino, isTrue);
     expect(dark.barStyle.backgroundColor, const Color(0xFF2C2C2E));
   });
+
+  test('value-equal themes are == with equal hashCodes', () {
+    final a = ChatReactionsTheme.light(platform: TargetPlatform.android);
+    final b = ChatReactionsTheme.light(platform: TargetPlatform.android);
+    expect(a, b);
+    expect(a.hashCode, b.hashCode);
+    expect(a, isNot(a.copyWith(animationDuration: const Duration(seconds: 1))));
+    expect(a, isNot(ChatReactionsTheme.dark(platform: TargetPlatform.android)));
+  });
+
+  testWidgets('rebuilding with a value-equal extension does not animate the '
+      'theme', (tester) async {
+    Widget app() => MaterialApp(
+      theme: ThemeData(extensions: [ChatReactionsTheme.light()]),
+      home: const SizedBox(),
+    );
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(app());
+    await tester.pump();
+    expect(tester.hasRunningAnimations, isFalse);
+  });
 }

@@ -172,6 +172,32 @@ class ChatReactionsTheme extends ThemeExtension<ChatReactionsTheme> {
     );
   }
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ChatReactionsTheme &&
+          other.runtimeType == runtimeType &&
+          other.style == style &&
+          other.barStyle == barStyle &&
+          other.menuStyle == menuStyle &&
+          other.chipStyle == chipStyle &&
+          other.overlayStyle == overlayStyle &&
+          other.animationDuration == animationDuration &&
+          other.animationCurve == animationCurve &&
+          other.haptics == haptics;
+
+  @override
+  int get hashCode => Object.hash(
+    style,
+    barStyle,
+    menuStyle,
+    chipStyle,
+    overlayStyle,
+    animationDuration,
+    animationCurve,
+    haptics,
+  );
+
   static const Duration _duration = Duration(milliseconds: 220);
 
   static ChatReactionsTheme _material(ColorScheme cs, TextTheme tt) {
