@@ -23,6 +23,82 @@ const Duration beat = Duration(milliseconds: 700);
 /// Pause at the end so the final state is visible in recordings.
 const Duration linger = Duration(milliseconds: 1500);
 
+/// Whether the scripts' pointer events are dispatched as *device* events
+/// rather than *test* events.
+///
+/// flutter_test's live binding paints a crosshair marker for every pointer
+/// that goes down with source [TestBindingEventSource.test] (what
+/// [WidgetTester.tap] and friends use), and those markers end up in the
+/// recorded GIFs. Device events are not painted.
+///
+/// Only set this when the binding delivers device events to the app, i.e.
+/// [LiveTestWidgetsFlutterBinding.shouldPropagateDevicePointerEvents] is true
+/// (the live runner, `demo_script_test.dart`, does both). Otherwise the live
+/// binding drops the events and no gesture reaches the app. Leave it false in
+/// fake-time widget tests.
+bool hideTouchIndicators = false;
+
+/// Pointer ids for [hideTouchIndicators] gestures: well clear of the ids
+/// [WidgetTester] hands out (which start at 1), and unique per gesture.
+int _nextDevicePointer = 1000;
+
+/// Puts a pointer down at [location]; see [hideTouchIndicators].
+Future<TestGesture> _startGesture(
+  WidgetTester tester,
+  Offset location, {
+  PointerDeviceKind kind = PointerDeviceKind.touch,
+  int buttons = kPrimaryButton,
+}) async {
+  if (!hideTouchIndicators) {
+    return tester.startGesture(location, kind: kind, buttons: buttons);
+  }
+  final binding = tester.binding;
+  assert(
+    binding is! LiveTestWidgetsFlutterBinding ||
+        binding.shouldPropagateDevicePointerEvents,
+    'hideTouchIndicators needs shouldPropagateDevicePointerEvents = true',
+  );
+  final gesture = TestGesture(
+    dispatcher: (event) async => binding.handlePointerEventForSource(
+      event,
+      source: TestBindingEventSource.device,
+    ),
+    pointer: _nextDevicePointer++,
+    kind: kind,
+    buttons: buttons,
+  );
+  await gesture.down(location);
+  return gesture;
+}
+
+/// Taps [location]: [WidgetTester.tapAt], or a device-event tap when
+/// [hideTouchIndicators] is set.
+Future<void> _tapAt(WidgetTester tester, Offset location) async {
+  if (!hideTouchIndicators) return tester.tapAt(location);
+  final gesture = await _startGesture(tester, location);
+  await gesture.up();
+}
+
+/// Taps the center of [finder]: [WidgetTester.tap], or a device-event tap
+/// when [hideTouchIndicators] is set.
+Future<void> _tap(
+  WidgetTester tester,
+  Finder finder, {
+  PointerDeviceKind kind = PointerDeviceKind.touch,
+  int buttons = kPrimaryButton,
+}) async {
+  if (!hideTouchIndicators) {
+    return tester.tap(finder, kind: kind, buttons: buttons);
+  }
+  final gesture = await _startGesture(
+    tester,
+    tester.getCenter(finder),
+    kind: kind,
+    buttons: buttons,
+  );
+  await gesture.up();
+}
+
 /// Scripts for every demo that has one.
 final Map<DemoId, DemoScript> demoScripts = {
   DemoId.quickStart: _quickStart,
@@ -66,13 +142,15 @@ Future<void> openMenu(WidgetTester tester, String id, Pace pace) async {
     // Hold the pointer down for a fixed duration via `pace` (fake time in
     // widget tests, real time when recording), comfortably past
     // kLongPressTimeout.
-    final gesture = await tester.startGesture(
+    final gesture = await _startGesture(
+      tester,
       tester.getCenter(messageFinder(id)),
     );
     await pace(const Duration(milliseconds: 800));
     await gesture.up();
   } else {
-    await tester.tap(
+    await _tap(
+      tester,
       messageFinder(id),
       buttons: kSecondaryButton,
       kind: PointerDeviceKind.mouse,
@@ -106,7 +184,7 @@ bool _menuIsOpen() =>
 
 /// Taps [finder] and waits a beat.
 Future<void> tapAndPace(WidgetTester tester, Finder finder, Pace pace) async {
-  await tester.tap(finder);
+  await _tap(tester, finder);
   await pace(beat);
 }
 
@@ -223,7 +301,7 @@ Future<void> _theming(WidgetTester tester, Pace pace) async {
   await pace(linger);
   // Dismiss by tapping the barrier near the view's bottom-left corner.
   final size = tester.view.physicalSize / tester.view.devicePixelRatio;
-  await tester.tapAt(Offset(8, size.height - 8));
+  await _tapAt(tester, Offset(8, size.height - 8));
   await pace(beat);
   expect(find.byType(ReactionBar), findsNothing);
 }

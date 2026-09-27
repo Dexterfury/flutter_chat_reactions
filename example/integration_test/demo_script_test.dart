@@ -23,8 +23,6 @@ import 'demo_script.dart';
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   // Draw every frame (not only on explicit pumps) so recordings are smooth.
-  // The binding's touch-indicator circles are kept on purpose: they show
-  // where the "finger" lands in the GIFs.
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
   final demo = DemoId.fromEnvironment() ?? DemoId.messenger;
   final platform = _platformFromEnvironment();
@@ -39,6 +37,11 @@ void main() {
     // same message is ignored. Letting device events through delivers the
     // cancel, as on a real device.
     binding.shouldPropagateDevicePointerEvents = true;
+    // The binding paints a crosshair marker for every simulated (test-source)
+    // pointer, which would show up in the GIFs. Dispatch the scripts' taps as
+    // device events instead: not painted, and delivered to the app because
+    // of the line above.
+    hideTouchIndicators = true;
     debugDefaultTargetPlatformOverride = platform;
     // Explain gesture problems in the log (CI failures must explain
     // themselves). flutter_test requires these to be reset before the test
@@ -73,6 +76,7 @@ void main() {
       debugPrintRecognizerCallbacksTrace = false;
       debugDefaultTargetPlatformOverride = null;
       binding.shouldPropagateDevicePointerEvents = false;
+      hideTouchIndicators = false;
     }
   });
 }
