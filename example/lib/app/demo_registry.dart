@@ -1,4 +1,5 @@
 import 'package:example/app/demo_id.dart';
+import 'package:example/demos/custom_demo.dart';
 import 'package:example/demos/messenger_demo.dart';
 import 'package:example/demos/quick_start_demo.dart';
 import 'package:example/demos/team_demo.dart';
@@ -11,6 +12,7 @@ final Map<DemoId, Widget Function()> demoBuilders = {
   DemoId.messenger: () => const MessengerDemo(),
   DemoId.team: () => const TeamDemo(),
   DemoId.telegram: () => const TelegramDemo(),
+  DemoId.custom: () => const CustomDemo(),
 };
 
 /// Builds [id]'s screen. [id] must be in [demoBuilders].
