@@ -63,7 +63,16 @@ Future<void> openMenu(WidgetTester tester, String id, Pace pace) async {
   await tester.pumpAndSettle();
   final platform = Theme.of(tester.element(messageFinder(id))).platform;
   if (_touchPlatforms.contains(platform)) {
-    await tester.longPress(messageFinder(id));
+    // tester.longPress doesn't guarantee the pointer is held for
+    // kLongPressTimeout of *real* time, so on a real device/simulator the
+    // gesture can be recognised as a tap instead of a long press. Hold the
+    // pointer down for a fixed duration via `pace` instead: fake time in
+    // widget tests, real time when recording.
+    final gesture = await tester.startGesture(
+      tester.getCenter(messageFinder(id)),
+    );
+    await pace(const Duration(milliseconds: 800));
+    await gesture.up();
   } else {
     await tester.tap(
       messageFinder(id),
