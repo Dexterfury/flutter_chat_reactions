@@ -42,30 +42,20 @@ class _QuickStartAppState extends State<QuickStartApp> {
             padding: const EdgeInsets.all(16),
             children: [
               for (final id in _messageIds)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ReactableMessage(
-                        reactions: _controller.summariesFor(id),
-                        onReactionSelected: _controller.bind(id).onReactionSelected,
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text('Message $id'),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      ReactionsSummaryView(
-                        reactions: _controller.summariesFor(id),
-                        onReactionTap: _controller.bind(id).onReactionSelected,
-                      ),
-                    ],
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ReactableMessage(
+                      reactions: _controller.summariesFor(id),
+                      onReactionSelected:
+                          _controller.bind(id).onReactionSelected,
+                      child: Text('Message $id'),
+                    ),
+                    ReactionsSummaryView(
+                      reactions: _controller.summariesFor(id),
+                      onReactionTap: _controller.bind(id).onReactionSelected,
+                    ),
+                  ],
                 ),
             ],
           ),
