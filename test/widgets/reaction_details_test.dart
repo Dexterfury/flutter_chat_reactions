@@ -58,6 +58,27 @@ void main() {
     expect(find.text('4 reactions'), findsOneWidget);
   });
 
+  testWidgets('scrollable: false renders rows in a plain Column', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      harness(
+        const ReactionDetailsList(
+          reactions: [
+            ReactionSummary(
+              emoji: '👍',
+              count: 1,
+              users: [ReactionUser(id: 'u1', name: 'Ada')],
+            ),
+          ],
+          scrollable: false,
+        ),
+      ),
+    );
+    expect(find.byType(ListView), findsNothing);
+    expect(find.text('Ada'), findsOneWidget);
+  });
+
   testWidgets('a user with an avatarUrl shows the avatar image', (
     tester,
   ) async {

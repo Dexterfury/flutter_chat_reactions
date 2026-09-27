@@ -9,10 +9,21 @@ import '../models/reaction_user.dart';
 /// Lists who reacted with what. Shows a count when user details are unknown.
 class ReactionDetailsList extends StatelessWidget {
   /// Creates a details list.
-  const ReactionDetailsList({super.key, required this.reactions});
+  const ReactionDetailsList({
+    super.key,
+    required this.reactions,
+    this.scrollable = true,
+  });
 
   /// Reactions to list.
   final List<ReactionSummary> reactions;
+
+  /// Whether rows are laid out in a scrolling, shrink-wrapped [ListView]
+  /// (the default). When false, rows are laid out in a plain, non-lazy
+  /// [Column] instead — useful when a caller needs an intrinsic-height-aware
+  /// ancestor (e.g. a [SingleChildScrollView] capped by a [ConstrainedBox]),
+  /// which a [ListView] cannot provide.
+  final bool scrollable;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +43,9 @@ class ReactionDetailsList extends StatelessWidget {
       for (final user in summary.users) {
         rows.add(_UserTile(user: user, emoji: summary.emoji));
       }
+    }
+    if (!scrollable) {
+      return Column(mainAxisSize: MainAxisSize.min, children: rows);
     }
     return ListView(shrinkWrap: true, children: rows);
   }

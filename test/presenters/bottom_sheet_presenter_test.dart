@@ -159,6 +159,85 @@ void main() {
     expect(find.text('Ada'), findsOneWidget);
   });
 
+  testWidgets('Cupertino: showReactionDetails shrinks to fit a single user', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      harness(
+        PresenterLauncher(
+          presenter: const BottomSheetPresenter(showReactionDetails: true),
+          menu: testMenu(
+            reactions: const [
+              ReactionSummary(
+                emoji: '👍',
+                count: 1,
+                users: [ReactionUser(id: 'u1', name: 'Ada')],
+              ),
+            ],
+          ),
+        ),
+        platform: TargetPlatform.iOS,
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    final height = tester
+        .getSize(find.byKey(const Key('reaction-details-scroll')))
+        .height;
+    expect(
+      height,
+      lessThan(240),
+      reason: 'a single row should not stretch to the 240px cap',
+    );
+  });
+
+  testWidgets(
+    'Cupertino: showReactionDetails caps at 240px and scrolls for many users',
+    (tester) async {
+      final users = [
+        for (var i = 0; i < 20; i++) ReactionUser(id: 'u$i', name: 'User $i'),
+      ];
+      await tester.pumpWidget(
+        harness(
+          PresenterLauncher(
+            presenter: const BottomSheetPresenter(showReactionDetails: true),
+            menu: testMenu(
+              reactions: [
+                ReactionSummary(emoji: '👍', count: 20, users: users),
+              ],
+            ),
+          ),
+          platform: TargetPlatform.iOS,
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      final scrollFinder = find.byKey(const Key('reaction-details-scroll'));
+      final viewport = tester.getRect(scrollFinder);
+      expect(viewport.height, 240);
+      expect(find.text('User 0'), findsOneWidget);
+
+      // The Column form is non-lazy, so every row exists in the tree even
+      // when scrolled out of view; check position, not presence.
+      final before = tester.getCenter(find.text('User 19'));
+      expect(
+        before.dy,
+        greaterThan(viewport.bottom),
+        reason: 'below the visible 240px viewport before scrolling',
+      );
+
+      await tester.drag(scrollFinder, const Offset(0, -2000));
+      await tester.pumpAndSettle();
+
+      final after = tester.getCenter(find.text('User 19'));
+      expect(
+        after.dy,
+        inInclusiveRange(viewport.top, viewport.bottom),
+        reason: 'scrolled into view within the 240px viewport',
+      );
+    },
+  );
+
   testWidgets('showReactionDetails lists users', (tester) async {
     await tester.pumpWidget(
       harness(
