@@ -97,4 +97,67 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('custom-ui'), findsNothing);
   });
+
+  testWidgets('dismissible: false ignores tap outside and Escape, but '
+      'menu.dismiss() still closes', (tester) async {
+    final menu = testMenu();
+    var closed = false;
+    await tester.pumpWidget(
+      harness(
+        PresenterLauncher(
+          presenter: CustomPresenter(
+            dismissible: false,
+            builder: (context, menu, animation) =>
+                const Center(child: Text('custom-ui')),
+          ),
+          menu: menu,
+          onClosed: () => closed = true,
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.tapAt(const Offset(5, 590));
+    await tester.pumpAndSettle();
+    expect(find.text('custom-ui'), findsOneWidget);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    expect(find.text('custom-ui'), findsOneWidget);
+    expect(closed, isFalse);
+
+    menu.dismiss();
+    await tester.pumpAndSettle();
+    expect(find.text('custom-ui'), findsNothing);
+    expect(closed, isTrue);
+  });
+
+  test('dismissible defaults to true', () {
+    expect(
+      CustomPresenter(builder: (_, _, _) => const SizedBox()).dismissible,
+      isTrue,
+    );
+  });
+
+  testWidgets('dismissible: false still closes on system back', (tester) async {
+    await tester.pumpWidget(
+      harness(
+        PresenterLauncher(
+          presenter: CustomPresenter(
+            dismissible: false,
+            builder: (context, menu, animation) =>
+                const Center(child: Text('custom-ui')),
+          ),
+          menu: testMenu(),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('custom-ui'), findsNothing);
+    expect(find.text('open'), findsOneWidget);
+  });
 }

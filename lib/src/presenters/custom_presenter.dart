@@ -17,6 +17,7 @@ class CustomPresenter extends ReactionsPresenter {
     this.barrierColor,
     this.blurSigma = 0,
     this.transitionDuration,
+    this.dismissible = true,
   });
 
   /// Builds the menu. [animation] runs 0→1 on open and 1→0 on close.
@@ -36,6 +37,12 @@ class CustomPresenter extends ReactionsPresenter {
   /// Open/close duration; defaults to the theme's animation duration.
   final Duration? transitionDuration;
 
+  /// Whether tapping outside the menu or pressing Escape closes it (the
+  /// default). When false, close the menu yourself with
+  /// `ReactionsMenuContext.dismiss` (or a selection). System back and a
+  /// screen resize still close it.
+  final bool dismissible;
+
   @override
   Future<void> show(BuildContext context, ReactionsMenuContext menu) {
     final theme = ChatReactionsTheme.of(context);
@@ -45,6 +52,7 @@ class CustomPresenter extends ReactionsPresenter {
       curve: theme.animationCurve!,
       barrierTint: barrierColor,
       blurSigma: blurSigma,
+      barrierDismissible: dismissible,
       barrierLabel: ChatReactionsLocalizations.of(context).dismissMenu,
       builder: (context, animation) => builder(context, menu, animation),
     );

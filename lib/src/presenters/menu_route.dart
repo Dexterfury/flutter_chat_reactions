@@ -18,7 +18,9 @@ class ReactionsMenuRoute extends PopupRoute<void> {
     required String barrierLabel,
     this.barrierTint,
     this.blurSigma = 0,
-  }) : _barrierLabel = barrierLabel;
+    bool barrierDismissible = true,
+  }) : _barrierLabel = barrierLabel,
+       _barrierDismissible = barrierDismissible;
 
   /// The menu this route shows.
   final ReactionsMenuContext menu;
@@ -40,6 +42,7 @@ class ReactionsMenuRoute extends PopupRoute<void> {
   final double blurSigma;
 
   final String _barrierLabel;
+  final bool _barrierDismissible;
 
   // Inherited themes (Theme, DefaultTextStyle, ChatReactionsScope, ...) of
   // the context that showed the menu, captured once by
@@ -50,7 +53,7 @@ class ReactionsMenuRoute extends PopupRoute<void> {
   Color? get barrierColor => null;
 
   @override
-  bool get barrierDismissible => true;
+  bool get barrierDismissible => _barrierDismissible;
 
   @override
   String? get barrierLabel => _barrierLabel;
