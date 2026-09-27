@@ -16,6 +16,7 @@ belongs to your app, presentation is pluggable, and styling moved to a `ThemeExt
 | `MenuItem` | `ReactionAction` (matched by `id`, not label) |
 | `'➕'` in `availableReactions` + `emojiPickerBuilder` | `onMoreTap` — open any picker, return the emoji |
 | `ReactionsDialogWidget`, `ContextMenuWidget`, `HeroDialogRoute` | presenters (`FocusedOverlayPresenter` …) and building blocks (`ReactionBar`, `ReactionActionMenu`, `AnchoredLayout`) |
+| `alignment: Alignment.centerRight` / `Alignment.centerLeft` | `alignment: ReactionAlignment.end` / `ReactionAlignment.start` (direction-aware: mirrors in right-to-left layouts) |
 
 ## Before / after
 
