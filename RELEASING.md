@@ -45,8 +45,9 @@ Recorded on an iOS simulator from the example's demo scripts by **Record demo GI
 (`.github/workflows/demo-gifs.yml`):
 
 - on every published release,
-- manually from the Actions tab (optionally listing demo slugs), or
-- by pushing a commit whose message contains `[record-gifs]` to any branch except `main`.
+- manually from the Actions tab (optionally listing demo slugs and themes), or
+- by pushing a commit whose message contains `[record-gifs]` to any branch except `main`; lines
+  such as `record-demos: quickstart` and `record-themes: light` in that message narrow the run.
 
 The workflow pushes a `demo-gifs/<run>` branch and opens a PR when `RELEASE_PLEASE_TOKEN` exists.
 On a Mac you can run it locally: `tool/record_gifs.sh [slug…]` (needs Xcode, Flutter, ffmpeg and

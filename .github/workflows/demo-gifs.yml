@@ -3,7 +3,9 @@
 # exists (GitHub Actions may not create PRs in this repo otherwise).
 #
 # Triggers: manual dispatch, a published release, or a push to a non-main
-# branch whose head commit message contains [record-gifs].
+# branch whose head commit message contains [record-gifs]. On a push, lines
+# `record-demos: <slugs>` and `record-themes: <themes>` in the head commit
+# message narrow the run (e.g. `record-demos: quickstart`).
 name: Record demo GIFs
 
 on:
@@ -13,6 +15,10 @@ on:
         description: Space-separated demo slugs (empty = all)
         required: false
         default: ''
+      themes:
+        description: Space-separated themes
+        required: false
+        default: 'light dark'
   release:
     types: [published]
   push:
@@ -38,12 +44,35 @@ jobs:
       - name: Install ffmpeg and gifsicle
         run: brew install ffmpeg gifsicle
 
+      - name: Choose demos and themes
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_DEMOS: ${{ inputs.demos }}
+          INPUT_THEMES: ${{ inputs.themes }}
+          HEAD_MESSAGE: ${{ github.event.head_commit.message }}
+        # Only letters and spaces are kept, so nothing else can reach
+        # $GITHUB_ENV; tool/record_gifs.sh validates the values.
+        run: |
+          demos="$INPUT_DEMOS"
+          themes="$INPUT_THEMES"
+          if [ "$EVENT" = push ]; then
+            demos="$(printf '%s\n' "$HEAD_MESSAGE" |
+              sed -n 's/^record-demos:[[:space:]]*//p' | head -n 1)"
+            themes="$(printf '%s\n' "$HEAD_MESSAGE" |
+              sed -n 's/^record-themes:[[:space:]]*//p' | head -n 1)"
+          fi
+          demos="$(printf '%s' "$demos" | tr -cd 'a-z ')"
+          themes="$(printf '%s' "$themes" | tr -cd 'a-z ')"
+          case "$themes" in *[a-z]*) ;; *) themes='' ;; esac
+          echo "RECORD_DEMOS=$demos" >>"$GITHUB_ENV"
+          echo "RECORD_THEMES=${themes:-light dark}" >>"$GITHUB_ENV"
+          echo "Demos: ${demos:-all}; themes: ${themes:-light dark}"
+
       - name: Record GIFs
         env:
-          DEMOS: ${{ inputs.demos }}
           RECORD_LOG_DIR: ${{ runner.temp }}/gif-logs
-        # $DEMOS is intentionally unquoted: it is a space-separated list.
-        run: tool/record_gifs.sh $DEMOS
+        # $RECORD_DEMOS is intentionally unquoted: it is a space-separated list.
+        run: THEMES="$RECORD_THEMES" tool/record_gifs.sh $RECORD_DEMOS
 
       - name: Upload GIFs
         if: always()
@@ -58,7 +87,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: demo-gif-logs
-          path: ${{ runner.temp }}/gif-logs/*.log
+          path: |
+            ${{ runner.temp }}/gif-logs/*.log
+            ${{ runner.temp }}/gif-logs/*.png
+            ${{ runner.temp }}/gif-logs/*.mp4
           if-no-files-found: ignore
 
       - name: Push branch and open PR
