@@ -63,11 +63,9 @@ Future<void> openMenu(WidgetTester tester, String id, Pace pace) async {
   await tester.pumpAndSettle();
   final platform = Theme.of(tester.element(messageFinder(id))).platform;
   if (_touchPlatforms.contains(platform)) {
-    // tester.longPress doesn't guarantee the pointer is held for
-    // kLongPressTimeout of *real* time, so on a real device/simulator the
-    // gesture can be recognised as a tap instead of a long press. Hold the
-    // pointer down for a fixed duration via `pace` instead: fake time in
-    // widget tests, real time when recording.
+    // Hold the pointer down for a fixed duration via `pace` (fake time in
+    // widget tests, real time when recording), comfortably past
+    // kLongPressTimeout.
     final gesture = await tester.startGesture(
       tester.getCenter(messageFinder(id)),
     );
@@ -81,7 +79,30 @@ Future<void> openMenu(WidgetTester tester, String id, Pace pace) async {
     );
   }
   await pace(beat);
+  expect(
+    _menuIsOpen(),
+    isTrue,
+    reason:
+        'menu did not open for $id on $platform '
+        '(message at ${tester.getRect(messageFinder(id).first)})',
+  );
 }
+
+/// Whether a reactions menu is showing, for any presenter the demos use: the
+/// focused overlay and compact bar show a [ReactionBar], the bottom sheet
+/// shows one inside the sheet, and the custom demo's radial menu shows items
+/// keyed `radial-<emoji>`.
+bool _menuIsOpen() =>
+    find.byType(ReactionBar).evaluate().isNotEmpty ||
+    find.byType(BottomSheet).evaluate().isNotEmpty ||
+    find
+        .byWidgetPredicate(
+          (widget) =>
+              widget.key is ValueKey<String> &&
+              (widget.key! as ValueKey<String>).value.startsWith('radial-'),
+        )
+        .evaluate()
+        .isNotEmpty;
 
 /// Taps [finder] and waits a beat.
 Future<void> tapAndPace(WidgetTester tester, Finder finder, Pace pace) async {
