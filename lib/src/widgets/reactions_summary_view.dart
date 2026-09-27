@@ -31,7 +31,7 @@ class ReactionsSummaryView extends StatelessWidget {
     this.maxVisible = 5,
     this.onReactionTap,
     this.onTap,
-    this.onLongPress,
+    this.onReactionLongPress,
     this.chipBuilder,
     this.emojiBuilder,
     this.style,
@@ -52,7 +52,7 @@ class ReactionsSummaryView extends StatelessWidget {
     this.maxVisible = 5,
     this.onReactionTap,
     this.onTap,
-    this.onLongPress,
+    this.onReactionLongPress,
     this.chipBuilder,
     this.emojiBuilder,
     this.style,
@@ -76,7 +76,7 @@ class ReactionsSummaryView extends StatelessWidget {
   final VoidCallback? onTap;
 
   /// Called with the long-pressed chip's emoji (chips layout).
-  final ValueChanged<String>? onLongPress;
+  final ValueChanged<String>? onReactionLongPress;
 
   /// Replaces the default chip (chips layout).
   final Widget Function(BuildContext context, ReactionSummary summary)?
@@ -177,9 +177,9 @@ class ReactionsSummaryView extends StatelessWidget {
                 onTap: onReactionTap == null
                     ? null
                     : () => onReactionTap!(summary.emoji),
-                onLongPress: onLongPress == null
+                onLongPress: onReactionLongPress == null
                     ? null
-                    : () => onLongPress!(summary.emoji),
+                    : () => onReactionLongPress!(summary.emoji),
               ),
         if (remaining > 0)
           _Pill(

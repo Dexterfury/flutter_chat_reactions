@@ -177,7 +177,7 @@ void main() {
     expect(summary.bottom, greaterThan(bubble.bottom));
   });
 
-  testWidgets('onLongPress reports the long-pressed chip emoji', (
+  testWidgets('onReactionLongPress reports the long-pressed chip emoji', (
     tester,
   ) async {
     String? longPressed;
@@ -185,12 +185,32 @@ void main() {
       harness(
         ReactionsSummaryView(
           reactions: three,
-          onLongPress: (e) => longPressed = e,
+          onReactionLongPress: (e) => longPressed = e,
         ),
       ),
     );
     await tester.longPress(find.text('😂'));
     expect(longPressed, '😂');
+  });
+
+  testWidgets('overlay: onReactionLongPress reports the chip emoji', (
+    tester,
+  ) async {
+    String? longPressed;
+    await tester.pumpWidget(
+      harness(
+        Center(
+          child: ReactionsSummaryView.overlay(
+            reactions: three,
+            layout: ReactionSummaryLayout.chips,
+            onReactionLongPress: (e) => longPressed = e,
+            child: const SizedBox(width: 200, height: 40),
+          ),
+        ),
+      ),
+    );
+    await tester.longPress(find.text('👍'));
+    expect(longPressed, '👍');
   });
 
   testWidgets('overlay constructor runs at runtime (non-const invocation)', (
