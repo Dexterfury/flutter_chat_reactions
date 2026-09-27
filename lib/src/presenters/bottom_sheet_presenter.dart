@@ -106,11 +106,15 @@ class BottomSheetPresenter extends ReactionsPresenter {
     final l10n = ChatReactionsLocalizations.of(context);
     return CupertinoActionSheet(
       title: _bar(menu),
+      // A tight SizedBox (not ConstrainedBox) is required here: the action
+      // sheet's message slot measures its child's intrinsic height, which a
+      // shrink-wrapping ListView cannot provide unless its own constraints
+      // are already tight.
       message: showReactionDetails && menu.reactions.isNotEmpty
           ? Material(
               type: MaterialType.transparency,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 240),
+              child: SizedBox(
+                height: 240,
                 child: ReactionDetailsList(reactions: menu.reactions),
               ),
             )
