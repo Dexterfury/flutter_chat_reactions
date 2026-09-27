@@ -1,7 +1,15 @@
 import 'package:example/app/demo_id.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+/// Platforms where the reactions menu's default trigger is a long press.
+const _touchPlatforms = {
+  TargetPlatform.iOS,
+  TargetPlatform.android,
+  TargetPlatform.fuchsia,
+};
 
 /// Waits [duration]: fake time in widget tests, real time when recording.
 typedef Pace = Future<void> Function(Duration duration);
@@ -47,9 +55,19 @@ Finder reactionInBar(String emoji) => find.descendant(
       : find.text(emoji),
 );
 
-/// Long-presses message [id] to open its reactions menu.
+/// Opens message [id]'s reactions menu: long-press on touch platforms,
+/// right-click (the default trigger there) on desktop platforms.
 Future<void> openMenu(WidgetTester tester, String id, Pace pace) async {
-  await tester.longPress(messageFinder(id));
+  final platform = Theme.of(tester.element(messageFinder(id))).platform;
+  if (_touchPlatforms.contains(platform)) {
+    await tester.longPress(messageFinder(id));
+  } else {
+    await tester.tap(
+      messageFinder(id),
+      buttons: kSecondaryButton,
+      kind: PointerDeviceKind.mouse,
+    );
+  }
   await pace(beat);
 }
 
