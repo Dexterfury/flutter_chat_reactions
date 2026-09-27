@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+import '../trigger/chat_reactions_scope.dart';
+
 /// User-facing strings used by this package.
 ///
 /// Provide translations by subclassing [DefaultChatReactionsLocalizations] and
@@ -42,8 +44,10 @@ abstract class ChatReactionsLocalizations {
   static const LocalizationsDelegate<ChatReactionsLocalizations> delegate =
       _DefaultDelegate();
 
-  /// The localizations for [context], falling back to English.
+  /// The localizations for [context]: `ChatReactionsScope.localizations` if
+  /// set, else the registered delegate, else English.
   static ChatReactionsLocalizations of(BuildContext context) =>
+      ChatReactionsScope.maybeOf(context)?.localizations ??
       Localizations.of<ChatReactionsLocalizations>(
         context,
         ChatReactionsLocalizations,

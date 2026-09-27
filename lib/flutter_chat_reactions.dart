@@ -24,6 +24,8 @@ export 'src/presenters/reactions_presenter.dart';
 export 'src/theme/adaptive.dart' show ReactionHaptics, ReactionsVisualStyle;
 export 'src/theme/chat_reactions_theme.dart';
 export 'src/theme/reaction_styles.dart';
+export 'src/trigger/chat_reactions_scope.dart';
+export 'src/trigger/reactable_message.dart';
 export 'src/trigger/reaction_trigger.dart';
 export 'src/widgets/emoji.dart';
 export 'src/widgets/reaction_action_menu.dart';

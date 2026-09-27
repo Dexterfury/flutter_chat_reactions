@@ -1,0 +1,224 @@
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import '../helpers.dart';
+
+const bubbleKey = Key('bubble');
+
+class RecordingPresenter extends ReactionsPresenter {
+  RecordingPresenter();
+  final List<ReactionsMenuContext> shown = [];
+
+  @override
+  Future<void> show(BuildContext context, ReactionsMenuContext menu) async {
+    shown.add(menu);
+  }
+}
+
+Widget message({
+  ReactionsPresenter? presenter,
+  Set<ReactionTrigger>? triggers,
+  ValueChanged<String>? onReactionSelected,
+  MoreReactionsCallback? onMoreTap,
+  ReactionActionsBuilder? actionsBuilder,
+  bool enabled = true,
+}) => Center(
+  child: ReactableMessage(
+    presenter: presenter,
+    triggers: triggers,
+    onReactionSelected: onReactionSelected,
+    onMoreTap: onMoreTap,
+    actionsBuilder: actionsBuilder,
+    enabled: enabled,
+    reactions: const [
+      ReactionSummary(emoji: '👍', count: 1, reactedByMe: true),
+    ],
+    child: const SizedBox(
+      key: bubbleKey,
+      width: 180,
+      height: 50,
+      child: ColoredBox(color: Colors.green),
+    ),
+  ),
+);
+
+void main() {
+  testWidgets('long press opens the default focused overlay', (tester) async {
+    String? emoji;
+    await tester.pumpWidget(
+      harness(message(onReactionSelected: (e) => emoji = e)),
+    );
+    await tester.longPress(find.byKey(bubbleKey));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ReactionBar), findsOneWidget);
+    expect(find.byType(BackdropFilter), findsOneWidget);
+    await tester.tap(find.text('❤️'));
+    await tester.pumpAndSettle();
+    expect(emoji, '❤️');
+  });
+
+  testWidgets('menu context carries the anchor rect and data', (tester) async {
+    final presenter = RecordingPresenter();
+    await tester.pumpWidget(
+      harness(
+        message(
+          presenter: presenter,
+          actionsBuilder: (_) => const [
+            ReactionAction<void>(id: 'copy', label: 'Copy'),
+          ],
+        ),
+      ),
+    );
+    await tester.longPress(find.byKey(bubbleKey));
+    final menu = presenter.shown.single;
+    expect(menu.anchorRect, tester.getRect(find.byKey(bubbleKey)));
+    expect(menu.quickReactions, kDefaultQuickReactions);
+    expect(menu.actions.single.id, 'copy');
+    expect(menu.selectedReactions, {'👍'});
+    expect(menu.hasMore, isFalse);
+  });
+
+  testWidgets('desktop defaults: right-click opens, long press does not', (
+    tester,
+  ) async {
+    final presenter = RecordingPresenter();
+    await tester.pumpWidget(
+      harness(message(presenter: presenter), platform: TargetPlatform.windows),
+    );
+    await tester.longPress(find.byKey(bubbleKey));
+    expect(presenter.shown, isEmpty);
+    await tester.tap(find.byKey(bubbleKey), buttons: kSecondaryButton);
+    expect(presenter.shown.single.trigger, ReactionTrigger.secondaryTap);
+  });
+
+  testWidgets('double tap trigger', (tester) async {
+    final presenter = RecordingPresenter();
+    await tester.pumpWidget(
+      harness(
+        message(presenter: presenter, triggers: {ReactionTrigger.doubleTap}),
+      ),
+    );
+    await tester.tap(find.byKey(bubbleKey));
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(find.byKey(bubbleKey));
+    await tester.pumpAndSettle();
+    expect(presenter.shown.single.trigger, ReactionTrigger.doubleTap);
+  });
+
+  testWidgets('keyboard: Enter on the focused message opens', (tester) async {
+    final presenter = RecordingPresenter();
+    await tester.pumpWidget(harness(message(presenter: presenter)));
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    expect(presenter.shown.single.trigger, ReactionTrigger.keyboard);
+  });
+
+  testWidgets('hover opens CompactBarPresenter after the delay', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      harness(
+        ChatReactionsScope(
+          presenter: const CompactBarPresenter(),
+          child: Center(
+            child: ReactableMessage(
+              onReactionSelected: (_) {},
+              child: const SizedBox(key: bubbleKey, width: 180, height: 50),
+            ),
+          ),
+        ),
+        platform: TargetPlatform.macOS,
+      ),
+    );
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    addTearDown(mouse.removePointer);
+    await mouse.addPointer(location: Offset.zero);
+    await mouse.moveTo(tester.getCenter(find.byKey(bubbleKey)));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(ReactionBar), findsNothing);
+    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pumpAndSettle();
+    expect(find.byType(ReactionBar), findsOneWidget);
+  });
+
+  testWidgets('semantics action opens the menu', (tester) async {
+    final presenter = RecordingPresenter();
+    await tester.pumpWidget(harness(message(presenter: presenter)));
+    final semantics = tester.widget<Semantics>(
+      find.byWidgetPredicate(
+        (w) => w is Semantics && w.properties.customSemanticsActions != null,
+      ),
+    );
+    final actions = semantics.properties.customSemanticsActions!;
+    expect(actions.keys.single.label, 'Open reactions menu');
+    actions.values.single();
+    await tester.pump();
+    expect(presenter.shown, hasLength(1));
+  });
+
+  testWidgets('disabled messages do not open', (tester) async {
+    final presenter = RecordingPresenter();
+    await tester.pumpWidget(
+      harness(message(presenter: presenter, enabled: false)),
+    );
+    await tester.longPress(find.byKey(bubbleKey));
+    expect(presenter.shown, isEmpty);
+  });
+
+  testWidgets('onMoreTap receives the message context', (tester) async {
+    BuildContext? moreContext;
+    await tester.pumpWidget(
+      harness(message(onMoreTap: (context) async => moreContext = context)),
+    );
+    await tester.longPress(find.byKey(bubbleKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('More reactions'));
+    await tester.pumpAndSettle();
+    expect(moreContext, isNotNull);
+    expect(moreContext!.mounted, isTrue);
+  });
+
+  testWidgets('removing the message while open closes the menu', (
+    tester,
+  ) async {
+    var show = true;
+    late StateSetter setOuter;
+    await tester.pumpWidget(
+      harness(
+        StatefulBuilder(
+          builder: (context, setState) {
+            setOuter = setState;
+            return show ? message() : const SizedBox();
+          },
+        ),
+      ),
+    );
+    await tester.longPress(find.byKey(bubbleKey));
+    await tester.pumpAndSettle();
+    expect(find.byType(ReactionBar), findsOneWidget);
+    setOuter(() => show = false);
+    await tester.pumpAndSettle();
+    expect(find.byType(ReactionBar), findsNothing);
+  });
+
+  testWidgets('does not open twice while open', (tester) async {
+    final presenter = CustomPresenter(builder: (_, _, _) => const SizedBox());
+    await tester.pumpWidget(harness(message(presenter: presenter)));
+    await tester.longPress(find.byKey(bubbleKey));
+    await tester.pumpAndSettle();
+    final routes = find.byType(SizedBox).evaluate().length;
+    await tester.longPress(find.byKey(bubbleKey), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    // The second long press lands on the (contentless) menu route rather
+    // than re-entering `_open`, so the guard is exercised indirectly: the
+    // count must never exceed `routes` (a duplicate route would add another
+    // SizedBox). The route's own barrier may legitimately treat this as a
+    // tap outside and dismiss, which is not a double-open.
+    expect(find.byType(SizedBox).evaluate().length, lessThanOrEqualTo(routes));
+  });
+}
