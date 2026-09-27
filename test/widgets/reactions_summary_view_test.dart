@@ -56,6 +56,23 @@ void main() {
     expect(find.text('😂'), findsNothing);
   });
 
+  testWidgets('maxVisible of 0 shows only the +N chip', (tester) async {
+    await tester.pumpWidget(
+      harness(const ReactionsSummaryView(reactions: three, maxVisible: 0)),
+    );
+    expect(find.text('+3'), findsOneWidget);
+    expect(find.text('👍'), findsNothing);
+    expect(find.text('❤️'), findsNothing);
+    expect(find.text('😂'), findsNothing);
+  });
+
+  testWidgets('negative maxVisible asserts', (tester) async {
+    expect(
+      () => ReactionsSummaryView(reactions: three, maxVisible: -1),
+      throwsAssertionError,
+    );
+  });
+
   testWidgets('stacked layout shows total count', (tester) async {
     await tester.pumpWidget(
       harness(

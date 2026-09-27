@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../l10n/chat_reactions_localizations.dart';
@@ -33,7 +35,8 @@ class ReactionsSummaryView extends StatelessWidget {
     this.chipBuilder,
     this.emojiBuilder,
     this.style,
-  }) : overlayChild = null,
+  }) : assert(maxVisible >= 0, 'maxVisible must not be negative'),
+       overlayChild = null,
        alignment = ReactionAlignment.end,
        overlap = 0;
 
@@ -53,7 +56,8 @@ class ReactionsSummaryView extends StatelessWidget {
     this.chipBuilder,
     this.emojiBuilder,
     this.style,
-  }) : overlayChild = child;
+  }) : assert(maxVisible >= 0, 'maxVisible must not be negative'),
+       overlayChild = child;
 
   /// Reactions to display.
   final List<ReactionSummary> reactions;
@@ -61,7 +65,8 @@ class ReactionsSummaryView extends StatelessWidget {
   /// Arrangement.
   final ReactionSummaryLayout layout;
 
-  /// Maximum emojis shown before a "+N" indicator.
+  /// Maximum emojis shown before a "+N" indicator. Must not be negative;
+  /// negative values are clamped to 0 at runtime outside of debug asserts.
   final int maxVisible;
 
   /// Called with the tapped chip's emoji (chips layout).
@@ -153,7 +158,8 @@ class ReactionsSummaryView extends StatelessWidget {
     EmojiBuilder emoji,
     ChatReactionsTheme theme,
   ) {
-    final visible = reactions.take(maxVisible).toList();
+    final limit = math.max(0, maxVisible);
+    final visible = reactions.take(limit).toList();
     final remaining = reactions.length - visible.length;
     return Wrap(
       spacing: 4,
@@ -190,7 +196,8 @@ class ReactionsSummaryView extends StatelessWidget {
     ChatReactionsLocalizations l10n,
     EmojiBuilder emoji,
   ) {
-    final visible = reactions.take(maxVisible).toList();
+    final limit = math.max(0, maxVisible);
+    final visible = reactions.take(limit).toList();
     final size = chip.emojiSize!;
     final circle = size + 6;
     final step = circle * 0.6;
