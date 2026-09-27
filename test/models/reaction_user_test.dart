@@ -15,4 +15,10 @@ void main() {
     expect(a.copyWith(avatarUrl: 'x').avatarUrl, 'x');
     expect(a == a.copyWith(name: 'Bob'), isFalse);
   });
+
+  test('toString identifies the user', () {
+    const a = ReactionUser(id: 'u1', name: 'Ada');
+    expect(a.toString(), contains('u1'));
+    expect(a.toString(), contains('Ada'));
+  });
 }

@@ -10,10 +10,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Raised to 90 at the end of Plan 2.
-  MIN_COVERAGE: 0
-  # Lowered to 10 (score >= 150/160) at the end of Plan 2.
-  PANA_MAX_MISSING_POINTS: 40
+  MIN_COVERAGE: 90
+  PANA_MAX_MISSING_POINTS: 10
 
 jobs:
   checks:

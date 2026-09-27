@@ -133,6 +133,30 @@ void main() {
     expect(presenter.shown.single.trigger, ReactionTrigger.keyboard);
   });
 
+  testWidgets('keyboard: the context-menu key on the focused message opens', (
+    tester,
+  ) async {
+    final presenter = RecordingPresenter();
+    await tester.pumpWidget(harness(message(presenter: presenter)));
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.contextMenu);
+    expect(presenter.shown.single.trigger, ReactionTrigger.keyboard);
+  });
+
+  testWidgets('keyboard: Shift+F10 on the focused message opens', (
+    tester,
+  ) async {
+    final presenter = RecordingPresenter();
+    await tester.pumpWidget(harness(message(presenter: presenter)));
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.f10);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+    expect(presenter.shown.single.trigger, ReactionTrigger.keyboard);
+  });
+
   testWidgets('hover opens CompactBarPresenter after the delay', (
     tester,
   ) async {

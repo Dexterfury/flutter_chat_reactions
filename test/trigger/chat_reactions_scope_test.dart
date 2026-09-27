@@ -72,6 +72,27 @@ void main() {
     );
     expect(l10n.cancel, 'Abbrechen');
   });
+
+  testWidgets('updateShouldNotify compares every field', (tester) async {
+    const child = SizedBox();
+    final quickReactions = ['🔥'];
+    final a = ChatReactionsScope(quickReactions: quickReactions, child: child);
+    // Reuses every field by reference, so no clause short-circuits true and
+    // updateShouldNotify evaluates all the way through to the last field.
+    final same = ChatReactionsScope(
+      presenter: a.presenter,
+      quickReactions: a.quickReactions,
+      triggers: a.triggers,
+      actionsBuilder: a.actionsBuilder,
+      onMoreTap: a.onMoreTap,
+      emojiBuilder: a.emojiBuilder,
+      localizations: a.localizations,
+      child: child,
+    );
+    const different = ChatReactionsScope(quickReactions: ['✅'], child: child);
+    expect(a.updateShouldNotify(same), isFalse);
+    expect(a.updateShouldNotify(different), isTrue);
+  });
 }
 
 class _Custom extends DefaultChatReactionsLocalizations {

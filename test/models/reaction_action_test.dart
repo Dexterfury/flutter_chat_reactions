@@ -21,4 +21,9 @@ void main() {
     expect(a.isDestructive, isFalse);
     expect(a.icon, isNull);
   });
+
+  test('toString identifies the action by id', () {
+    const a = ReactionAction<void>(id: 'reply', label: 'Reply');
+    expect(a.toString(), 'ReactionAction(reply)');
+  });
 }

@@ -57,4 +57,38 @@ void main() {
     );
     expect(find.text('4 reactions'), findsOneWidget);
   });
+
+  testWidgets('a user with an avatarUrl shows the avatar image', (
+    tester,
+  ) async {
+    // NetworkImage has no real network in widget tests; suppress the
+    // resulting load-failure error so it doesn't fail the test.
+    final originalOnError = FlutterError.onError;
+    FlutterError.onError = (details) {};
+    addTearDown(() => FlutterError.onError = originalOnError);
+
+    await tester.pumpWidget(
+      harness(
+        const ReactionDetailsList(
+          reactions: [
+            ReactionSummary(
+              emoji: '🔥',
+              count: 1,
+              users: [
+                ReactionUser(
+                  id: 'u1',
+                  name: 'Ada',
+                  avatarUrl: 'https://example.com/a.png',
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pump();
+    final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
+    expect(avatar.backgroundImage, isA<NetworkImage>());
+    expect(avatar.child, isNull);
+  });
 }

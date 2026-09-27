@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
@@ -6,6 +8,43 @@ import 'package:flutter_test/flutter_test.dart';
 import '../helpers.dart';
 
 void main() {
+  test('default durations are applied at runtime', () {
+    // ignore: prefer_const_constructors
+    final presenter = CompactBarPresenter();
+    expect(presenter.hoverDelay, const Duration(milliseconds: 300));
+    expect(presenter.hoverExitDelay, const Duration(milliseconds: 200));
+  });
+
+  testWidgets('dismissing while another route covers it removes it directly', (
+    tester,
+  ) async {
+    final menu = testMenu();
+    await tester.pumpWidget(
+      harness(
+        PresenterLauncher(presenter: const CompactBarPresenter(), menu: menu),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ReactionBar), findsOneWidget);
+
+    final navigator = Navigator.of(
+      tester.element(find.text('open')),
+      rootNavigator: true,
+    );
+    unawaited(
+      navigator.push(MaterialPageRoute<void>(builder: (_) => const SizedBox())),
+    );
+    await tester.pumpAndSettle();
+
+    menu.dismiss();
+    await tester.pumpAndSettle();
+
+    navigator.pop();
+    await tester.pumpAndSettle();
+    expect(find.byType(ReactionBar), findsNothing);
+  });
+
   testWidgets('shows only the bar, no blur and no message copy', (
     tester,
   ) async {

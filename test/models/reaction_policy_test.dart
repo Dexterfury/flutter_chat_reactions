@@ -23,4 +23,19 @@ void main() {
   test('max must be positive', () {
     expect(() => MultipleReactionPolicy(max: 0), throwsAssertionError);
   });
+
+  test('single policy equality and hashCode', () {
+    const a = SingleReactionPolicy();
+    const b = SingleReactionPolicy();
+    expect(a, b);
+    expect(a.hashCode, b.hashCode);
+    expect(a == const ReactionPolicy.multiple(), isFalse);
+  });
+
+  test('multiple policy hashCode matches for equal instances', () {
+    expect(
+      const MultipleReactionPolicy(max: 2).hashCode,
+      const MultipleReactionPolicy(max: 2).hashCode,
+    );
+  });
 }

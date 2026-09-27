@@ -29,6 +29,25 @@ void main() {
     expect(l10n.reactionCount(3), '3 reactions');
     expect(l10n.emojiLabel('👍'), 'thumbs up');
     expect(l10n.emojiLabel(':party:'), ':party:');
+    expect(l10n.reactionsTitle, 'Reactions');
+    expect(l10n.allReactions, 'All');
+  });
+
+  test('the package delegate supports every locale and never reloads', () {
+    expect(
+      ChatReactionsLocalizations.delegate.isSupported(const Locale('en')),
+      isTrue,
+    );
+    expect(
+      ChatReactionsLocalizations.delegate.isSupported(const Locale('fr')),
+      isTrue,
+    );
+    expect(
+      ChatReactionsLocalizations.delegate.shouldReload(
+        ChatReactionsLocalizations.delegate,
+      ),
+      isFalse,
+    );
   });
 
   testWidgets('falls back to English without a delegate', (tester) async {

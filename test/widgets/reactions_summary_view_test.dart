@@ -177,6 +177,37 @@ void main() {
     expect(summary.bottom, greaterThan(bubble.bottom));
   });
 
+  testWidgets('onLongPress reports the long-pressed chip emoji', (
+    tester,
+  ) async {
+    String? longPressed;
+    await tester.pumpWidget(
+      harness(
+        ReactionsSummaryView(
+          reactions: three,
+          onLongPress: (e) => longPressed = e,
+        ),
+      ),
+    );
+    await tester.longPress(find.text('😂'));
+    expect(longPressed, '😂');
+  });
+
+  testWidgets('overlay constructor runs at runtime (non-const invocation)', (
+    tester,
+  ) async {
+    // Deliberately not `const` so the constructor's initializer list runs
+    // at runtime instead of being folded away by the compiler.
+    // ignore: prefer_const_constructors
+    final view = ReactionsSummaryView.overlay(
+      reactions: three,
+      child: const SizedBox(key: Key('bubble2'), width: 100, height: 40),
+    );
+    await tester.pumpWidget(harness(view));
+    expect(find.byKey(const Key('bubble2')), findsOneWidget);
+    expect(view.overlayChild, isNotNull);
+  });
+
   testWidgets('chip semantics', (tester) async {
     final handle = tester.ensureSemantics();
     await tester.pumpWidget(

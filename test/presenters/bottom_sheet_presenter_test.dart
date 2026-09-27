@@ -117,6 +117,48 @@ void main() {
     },
   );
 
+  testWidgets('Cupertino: action tap reports and closes', (tester) async {
+    ReactionAction<dynamic>? action;
+    await tester.pumpWidget(
+      harness(
+        PresenterLauncher(
+          presenter: const BottomSheetPresenter(),
+          menu: testMenu(onActionSelected: (a) => action = a),
+        ),
+        platform: TargetPlatform.iOS,
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+    expect(action?.id, 'delete');
+    expect(find.byType(CupertinoActionSheet), findsNothing);
+  });
+
+  testWidgets('Cupertino: showReactionDetails lists users', (tester) async {
+    await tester.pumpWidget(
+      harness(
+        PresenterLauncher(
+          presenter: const BottomSheetPresenter(showReactionDetails: true),
+          menu: testMenu(
+            reactions: const [
+              ReactionSummary(
+                emoji: '👍',
+                count: 1,
+                users: [ReactionUser(id: 'u1', name: 'Ada')],
+              ),
+            ],
+          ),
+        ),
+        platform: TargetPlatform.iOS,
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.text('Ada'), findsOneWidget);
+  });
+
   testWidgets('showReactionDetails lists users', (tester) async {
     await tester.pumpWidget(
       harness(

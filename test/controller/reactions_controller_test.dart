@@ -102,6 +102,21 @@ void main() {
       },
     );
 
+    test('rolls back to the previous entry, not an empty one', () async {
+      final gate = Completer<void>();
+      final c = make(onChange: (_) => gate.future);
+      c.setReactions('m1', const [Reaction(emoji: '👍', userId: 'u2')]);
+
+      final pending = c.toggle('m1', '❤️');
+      expect(c.summariesFor('m1'), hasLength(2), reason: 'optimistic');
+
+      gate.completeError(StateError('offline'));
+      await expectLater(pending, throwsStateError);
+      expect(c.summariesFor('m1'), [
+        predicate<ReactionSummary>((s) => s.emoji == '👍'),
+      ], reason: 'rolled back to the pre-existing entry');
+    });
+
     test('does not roll back over a newer change', () async {
       final first = Completer<void>();
       var call = 0;

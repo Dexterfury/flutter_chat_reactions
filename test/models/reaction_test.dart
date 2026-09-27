@@ -36,6 +36,35 @@ void main() {
       expect(a == b, isFalse);
       expect(a, const Reaction(emoji: '👍', userId: 'u1', extra: {'k': 1}));
     });
+
+    test('copyWith replaces given fields and keeps the rest', () {
+      const original = Reaction(emoji: '👍', userId: 'u1', userName: 'Ada');
+      final copy = original.copyWith(
+        emoji: '❤️',
+        userId: 'u2',
+        userName: 'Bo',
+        createdAt: DateTime.utc(2026),
+        extra: const {'k': 1},
+      );
+      expect(copy.emoji, '❤️');
+      expect(copy.userId, 'u2');
+      expect(copy.userName, 'Bo');
+      expect(copy.createdAt, DateTime.utc(2026));
+      expect(copy.extra, {'k': 1});
+      expect(
+        original.copyWith().emoji,
+        '👍',
+        reason: 'no-arg copyWith keeps values',
+      );
+    });
+
+    test('hashCode is consistent with equality and toString identifies it', () {
+      const a = Reaction(emoji: '👍', userId: 'u1', extra: {'k': 1});
+      const b = Reaction(emoji: '👍', userId: 'u1', extra: {'k': 1});
+      expect(a.hashCode, b.hashCode);
+      expect(a.toString(), contains('👍'));
+      expect(a.toString(), contains('u1'));
+    });
   });
 
   group('summarize', () {
@@ -80,6 +109,16 @@ void main() {
         r('❤️', 'u3', minute: 1),
       ].summarize(currentUserId: 'me', sort: ReactionSort.firstReacted);
       expect(summaries.map((s) => s.emoji), ['❤️', '👍', '😂']);
+    });
+
+    test('firstReacted: a dated reaction sorts before an undated one, and '
+        'two undated reactions keep first-appearance order', () {
+      final summaries = [
+        r('❤️', 'u1'),
+        r('😂', 'u2'),
+        r('👍', 'u3', minute: 5),
+      ].summarize(currentUserId: 'me', sort: ReactionSort.firstReacted);
+      expect(summaries.map((s) => s.emoji), ['👍', '❤️', '😂']);
     });
 
     test('none keeps first-appearance order', () {
