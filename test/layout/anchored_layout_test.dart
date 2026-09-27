@@ -16,23 +16,26 @@ Future<void> pumpLayout(
   double anchorHeight = 60,
   ReactionAlignment alignment = ReactionAlignment.end,
   TextDirection direction = TextDirection.ltr,
+  Size screenSize = const Size(400, 800),
+  Size headerSize = const Size(240, 48),
+  Size footerSize = const Size(220, 150),
 }) async {
-  tester.view.physicalSize = const Size(400, 800);
+  tester.view.physicalSize = screenSize;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
     MediaQuery(
-      data: const MediaQueryData(size: Size(400, 800)),
+      data: MediaQueryData(size: screenSize),
       child: Directionality(
         textDirection: direction,
         child: AnchoredLayout(
           anchorRect: anchorRect,
           alignment: alignment,
-          header: box(headerKey, 240, 48),
+          header: box(headerKey, headerSize.width, headerSize.height),
           anchor: withAnchor
               ? box(anchorKey, anchorRect.width, anchorHeight)
               : null,
-          footer: box(footerKey, 220, 150),
+          footer: box(footerKey, footerSize.width, footerSize.height),
         ),
       ),
     ),
@@ -123,4 +126,50 @@ void main() {
     await pumpLayout(tester, anchorRect: anchor, withAnchor: false);
     expect(tester.getRect(find.byKey(headerKey)).bottom, anchor.top - 8);
   });
+
+  testWidgets(
+    'does not crash when the safe area is smaller than the margins (with anchor)',
+    (tester) async {
+      const anchor = Rect.fromLTWH(0, 300, 10, 60);
+      await pumpLayout(
+        tester,
+        anchorRect: anchor,
+        screenSize: const Size(10, 800),
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'does not crash when the safe area is smaller than the margins (no anchor)',
+    (tester) async {
+      const anchor = Rect.fromLTWH(0, 300, 10, 60);
+      await pumpLayout(
+        tester,
+        anchorRect: anchor,
+        withAnchor: false,
+        screenSize: const Size(10, 800),
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'without anchor: header and footer do not collapse onto the same rect '
+    'when space is tight',
+    (tester) async {
+      const anchor = Rect.fromLTWH(150, 40, 200, 10);
+      await pumpLayout(
+        tester,
+        anchorRect: anchor,
+        withAnchor: false,
+        screenSize: const Size(400, 100),
+        headerSize: const Size(200, 60),
+        footerSize: const Size(200, 60),
+      );
+      final header = tester.getRect(find.byKey(headerKey));
+      final footer = tester.getRect(find.byKey(footerKey));
+      expect(header, isNot(equals(footer)));
+    },
+  );
 }

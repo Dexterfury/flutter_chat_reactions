@@ -101,7 +101,16 @@ class _AnchoredLayoutDelegate extends MultiChildLayoutDelegate {
 
   @override
   void performLayout(Size size) {
-    final area = safe.deflateRect(Offset.zero & size);
+    final rawArea = safe.deflateRect(Offset.zero & size);
+    // The safe area can be smaller than the margins/padding (e.g. a very
+    // narrow screen), which would otherwise yield negative width/height and
+    // crash BoxConstraints; floor it at zero instead.
+    final area = Rect.fromLTWH(
+      rawArea.left,
+      rawArea.top,
+      math.max(0.0, rawArea.width),
+      math.max(0.0, rawArea.height),
+    );
     final loose = BoxConstraints.loose(area.size);
 
     final hasHeader = hasChild(_Slot.header);
@@ -120,7 +129,7 @@ class _AnchoredLayoutDelegate extends MultiChildLayoutDelegate {
             headerGap -
             footerGap,
       );
-      final width = math.min(anchorRect.width, area.width);
+      final width = math.max(0.0, math.min(anchorRect.width, area.width));
       final anchorSize = layoutChild(
         _Slot.anchor,
         BoxConstraints(
@@ -154,19 +163,56 @@ class _AnchoredLayoutDelegate extends MultiChildLayoutDelegate {
       return;
     }
 
+    Rect? headerRect;
     if (hasHeader) {
       var y = anchorRect.top - spacing - headerSize.height;
       if (y < area.top) y = anchorRect.bottom + spacing;
       y = y
           .clamp(area.top, math.max(area.top, area.bottom - headerSize.height))
           .toDouble();
-      positionChild(_Slot.header, Offset(_x(headerSize.width, area), y));
+      headerRect = Rect.fromLTWH(
+        _x(headerSize.width, area),
+        y,
+        headerSize.width,
+        headerSize.height,
+      );
     }
     if (hasFooter) {
-      final y = (anchorRect.bottom + spacing)
+      // The footer starts below the anchor, but never above the header's
+      // bottom edge (the header may have flipped below the anchor); if
+      // clamping to the safe area would still pull it back into the header,
+      // push the header up instead so the two don't land on the same rect.
+      // Exact overlap can remain only when the area is smaller than both
+      // combined, which is an acceptable residual case.
+      var footerY = anchorRect.bottom + spacing;
+      if (headerRect != null) {
+        footerY = math.max(footerY, headerRect.bottom + spacing);
+      }
+      footerY = footerY
           .clamp(area.top, math.max(area.top, area.bottom - footerSize.height))
           .toDouble();
-      positionChild(_Slot.footer, Offset(_x(footerSize.width, area), y));
+      final footerRect = Rect.fromLTWH(
+        _x(footerSize.width, area),
+        footerY,
+        footerSize.width,
+        footerSize.height,
+      );
+      if (headerRect != null && footerRect.top < headerRect.bottom) {
+        final newHeaderTop = math.max(
+          area.top,
+          footerRect.top - spacing - headerSize.height,
+        );
+        headerRect = Rect.fromLTWH(
+          headerRect.left,
+          newHeaderTop,
+          headerSize.width,
+          headerSize.height,
+        );
+      }
+      positionChild(_Slot.footer, footerRect.topLeft);
+    }
+    if (headerRect != null) {
+      positionChild(_Slot.header, headerRect.topLeft);
     }
   }
 
