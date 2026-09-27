@@ -59,6 +59,11 @@ class _ReactionBarState extends State<ReactionBar>
   Duration _itemDuration = Duration.zero;
   bool _initialized = false;
 
+  // Per-item entrance animations, cached so rebuilds don't attach new
+  // listeners to [_controller]. Rebuilt when the item count or curve changes.
+  List<CurvedAnimation> _itemAnimations = const [];
+  Curve? _itemCurve;
+
   int get _itemCount =>
       widget.reactions.length +
       (widget.onMore == null ? 0 : 1) +
@@ -80,22 +85,48 @@ class _ReactionBarState extends State<ReactionBar>
 
   @override
   void dispose() {
+    _disposeItemAnimations();
     _controller.dispose();
     super.dispose();
   }
 
-  Widget _animated(int index, Curve curve, Widget child) {
+  void _disposeItemAnimations() {
+    for (final animation in _itemAnimations) {
+      animation.dispose();
+    }
+    _itemAnimations = const [];
+  }
+
+  void _ensureItemAnimations(int count, Curve curve) {
+    if (_itemAnimations.length == count && _itemCurve == curve) return;
+    _disposeItemAnimations();
+    _itemCurve = curve;
     final total = _controller.duration;
-    if (total == null || total == Duration.zero) return child;
-    final start = (_stagger * index).inMicroseconds / total.inMicroseconds;
+    if (total == null || total == Duration.zero) return;
+    _itemAnimations = [
+      for (var index = 0; index < count; index++)
+        CurvedAnimation(
+          parent: _controller,
+          curve: _interval(index, total, curve),
+        ),
+    ];
+  }
+
+  Interval _interval(int index, Duration total, Curve curve) {
+    final start = math.min(
+      1.0,
+      (_stagger * index).inMicroseconds / total.inMicroseconds,
+    );
     final end = math.min(
       1.0,
       start + _itemDuration.inMicroseconds / total.inMicroseconds,
     );
-    final animation = CurvedAnimation(
-      parent: _controller,
-      curve: Interval(start, end, curve: curve),
-    );
+    return Interval(start, end, curve: curve);
+  }
+
+  Widget _animated(int index, Widget child) {
+    if (index >= _itemAnimations.length) return child;
+    final animation = _itemAnimations[index];
     return FadeTransition(
       opacity: animation,
       child: ScaleTransition(
@@ -148,6 +179,8 @@ class _ReactionBarState extends State<ReactionBar>
         ),
     ];
 
+    _ensureItemAnimations(items.length, theme.animationCurve!);
+
     return FocusTraversalGroup(
       child: Material(
         type: MaterialType.transparency,
@@ -166,7 +199,7 @@ class _ReactionBarState extends State<ReactionBar>
                 children: [
                   for (var i = 0; i < items.length; i++) ...[
                     if (i > 0) SizedBox(width: style.itemSpacing),
-                    _animated(i, theme.animationCurve!, items[i]),
+                    _animated(i, items[i]),
                   ],
                 ],
               ),

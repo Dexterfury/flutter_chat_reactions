@@ -114,6 +114,36 @@ class _ReactableMessageState extends State<ReactableMessage> {
       _scope?.triggers ??
       defaultReactionTriggers(Theme.of(context).platform);
 
+  // Whether hover currently opens the menu (hover trigger + compact bar).
+  bool get _hoverEnabled =>
+      widget.enabled &&
+      _triggers.contains(ReactionTrigger.hover) &&
+      _presenter is CompactBarPresenter;
+
+  void _cancelHover() {
+    _hoverTimer?.cancel();
+    _hoverTimer = null;
+    _hoverArmed = false;
+  }
+
+  @override
+  void didUpdateWidget(ReactableMessage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.enabled) {
+      _cancelHover();
+      _menu?.dismiss();
+    } else if (!_hoverEnabled) {
+      _cancelHover();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // A scope change can turn hover off as well.
+    if (_hoverTimer != null && !_hoverEnabled) _cancelHover();
+  }
+
   Future<void> _open(ReactionTrigger trigger) async {
     if (_menu != null || !widget.enabled || !mounted) return;
     final scope = _scope;
@@ -214,6 +244,8 @@ class _ReactableMessageState extends State<ReactableMessage> {
             if (!_hoverArmed || _menu != null || _hoverTimer != null) return;
             _hoverTimer = Timer(presenter.hoverDelay, () {
               _hoverTimer = null;
+              // Re-check: the configuration may have changed meanwhile.
+              if (!mounted || !_hoverEnabled) return;
               unawaited(_open(ReactionTrigger.hover));
             });
           },

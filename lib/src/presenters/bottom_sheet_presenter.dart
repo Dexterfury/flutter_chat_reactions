@@ -47,33 +47,39 @@ class BottomSheetPresenter extends ReactionsPresenter {
       return child;
     }
 
-    if (theme.isCupertino) {
-      // Unlike showModalBottomSheet, showCupertinoModalPopup does not carry
-      // the caller's inherited themes (local Theme, ChatReactionsScope, ...)
-      // into the popup, so capture and re-provide them here.
-      final themes = InheritedTheme.capture(
-        from: context,
-        to: navigator.context,
-      );
-      await showCupertinoModalPopup<void>(
-        context: context,
-        useRootNavigator: true,
-        builder: (sheetContext) => capture(
-          sheetContext,
-          themes.wrap(
-            Builder(builder: (context) => _cupertinoSheet(context, menu)),
+    try {
+      if (theme.isCupertino) {
+        // Unlike showModalBottomSheet, showCupertinoModalPopup does not carry
+        // the caller's inherited themes (local Theme, ChatReactionsScope, ...)
+        // into the popup, so capture and re-provide them here.
+        final themes = InheritedTheme.capture(
+          from: context,
+          to: navigator.context,
+        );
+        await showCupertinoModalPopup<void>(
+          context: context,
+          useRootNavigator: true,
+          builder: (sheetContext) => capture(
+            sheetContext,
+            themes.wrap(
+              Builder(builder: (context) => _cupertinoSheet(context, menu)),
+            ),
           ),
-        ),
-      );
-    } else {
-      await showModalBottomSheet<void>(
-        context: context,
-        useRootNavigator: true,
-        showDragHandle: true,
-        isScrollControlled: true,
-        builder: (sheetContext) =>
-            capture(sheetContext, _materialSheet(sheetContext, menu)),
-      );
+        );
+      } else {
+        await showModalBottomSheet<void>(
+          context: context,
+          useRootNavigator: true,
+          showDragHandle: true,
+          isScrollControlled: true,
+          builder: (sheetContext) =>
+              capture(sheetContext, _materialSheet(sheetContext, menu)),
+        );
+      }
+    } finally {
+      // However the sheet closed (barrier, drag, back, a selection), the
+      // menu ends up dismissed. The route is gone, so this is a no-op close.
+      menu.dismiss();
     }
   }
 

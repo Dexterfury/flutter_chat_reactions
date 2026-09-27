@@ -49,6 +49,10 @@ class ReactionsMenuRoute extends PopupRoute<void> {
   // [showReactionsMenuRoute] so the content looks as it would at the message.
   CapturedThemes? _capturedThemes;
 
+  // Created once per route (buildPage can run again when the navigator
+  // rebuilds) and disposed with the route.
+  CurvedAnimation? _curved;
+
   @override
   Color? get barrierColor => null;
 
@@ -64,6 +68,12 @@ class ReactionsMenuRoute extends PopupRoute<void> {
   @override
   Duration get reverseTransitionDuration => duration;
 
+  @override
+  void dispose() {
+    _curved?.dispose();
+    super.dispose();
+  }
+
   Widget _content(Animation<double> animation) {
     Widget content = Builder(builder: (context) => builder(context, animation));
     final themes = _capturedThemes;
@@ -77,7 +87,7 @@ class ReactionsMenuRoute extends PopupRoute<void> {
     Animation<double> animation,
     Animation<double> secondaryAnimation,
   ) {
-    final curved = CurvedAnimation(parent: animation, curve: curve);
+    final curved = _curved ??= CurvedAnimation(parent: animation, curve: curve);
     final tint = barrierTint;
     return _DismissOnResize(
       onResize: menu.dismiss,
@@ -117,6 +127,8 @@ class ReactionsMenuRoute extends PopupRoute<void> {
 }
 
 /// Pushes [route] on the root navigator and wires [menu.dismiss] to close it.
+/// However the route closes (barrier, Escape, back, a selection), [menu] ends
+/// up dismissed.
 ///
 /// The inherited themes at [context] (the local `Theme`, `DefaultTextStyle`,
 /// `ChatReactionsScope`, ...) are captured and re-provided to the route's
@@ -132,7 +144,7 @@ Future<void> showReactionsMenuRoute(
     to: navigator.context,
   );
   menu.setDismissHandler(() => closeRouteSafely(navigator, route));
-  return navigator.push(route);
+  return navigator.push(route).whenComplete(menu.dismiss);
 }
 
 /// Pops [route] if it is still active, deferring when the tree is locked

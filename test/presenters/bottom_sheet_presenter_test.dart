@@ -259,4 +259,19 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Ada'), findsOneWidget);
   });
+
+  testWidgets('Material: barrier tap marks the menu dismissed', (tester) async {
+    final menu = testMenu();
+    await tester.pumpWidget(
+      harness(
+        PresenterLauncher(presenter: const BottomSheetPresenter(), menu: menu),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsNothing);
+    expect(menu.isDismissed, isTrue);
+  });
 }

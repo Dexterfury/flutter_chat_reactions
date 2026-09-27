@@ -160,4 +160,55 @@ void main() {
     expect(find.text('custom-ui'), findsNothing);
     expect(find.text('open'), findsOneWidget);
   });
+
+  testWidgets('tap outside marks the menu dismissed', (tester) async {
+    final menu = testMenu();
+    await tester.pumpWidget(
+      harness(PresenterLauncher(presenter: presenter(), menu: menu)),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(menu.isDismissed, isFalse);
+    await tester.tapAt(const Offset(5, 590));
+    await tester.pumpAndSettle();
+    expect(menu.isDismissed, isTrue);
+  });
+
+  testWidgets('Escape marks the menu dismissed', (tester) async {
+    final menu = testMenu();
+    await tester.pumpWidget(
+      harness(PresenterLauncher(presenter: presenter(), menu: menu)),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    expect(menu.isDismissed, isTrue);
+  });
+
+  testWidgets('the route reuses one curved animation across page rebuilds', (
+    tester,
+  ) async {
+    final seen = <Animation<double>>[];
+    final custom = CustomPresenter(
+      builder: (context, menu, animation) {
+        seen.add(animation);
+        return const Center(child: Text('custom-ui'));
+      },
+    );
+    final menu = testMenu();
+    await tester.pumpWidget(
+      harness(PresenterLauncher(presenter: custom, menu: menu)),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    // Rebuilding the app rebuilds the Navigator, which forces every route to
+    // rebuild its page.
+    await tester.pumpWidget(
+      harness(PresenterLauncher(presenter: custom, menu: menu), textScale: 1.1),
+    );
+    await tester.pumpAndSettle();
+    expect(seen.length, greaterThan(1));
+    expect(seen.toSet(), hasLength(1));
+  });
 }

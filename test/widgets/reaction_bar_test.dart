@@ -141,4 +141,38 @@ void main() {
         .value;
     expect(late, 1);
   });
+
+  testWidgets('item animations are reused across rebuilds', (tester) async {
+    List<Animation<double>> opacities() => [
+      for (final t in tester.widgetList<FadeTransition>(
+        find.descendant(
+          of: find.byType(ReactionBar),
+          matching: find.byType(FadeTransition),
+        ),
+      ))
+        t.opacity,
+    ];
+
+    Widget bar(List<String> reactions) => harness(
+      Center(
+        child: ReactionBar(reactions: reactions, onSelected: (_) {}),
+      ),
+    );
+
+    await tester.pumpWidget(bar(const ['a', 'b']));
+    final first = opacities();
+    expect(first, hasLength(2));
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pumpWidget(bar(const ['a', 'b']));
+    expect(opacities(), orderedEquals(first.map(same)));
+
+    // A different item count rebuilds the animations; the entrance still
+    // completes.
+    await tester.pumpWidget(bar(const ['a', 'b', 'c']));
+    expect(opacities(), hasLength(3));
+    await tester.pumpAndSettle();
+    for (final opacity in opacities()) {
+      expect(opacity.value, 1);
+    }
+  });
 }

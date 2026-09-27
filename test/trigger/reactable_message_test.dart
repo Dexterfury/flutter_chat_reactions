@@ -301,4 +301,136 @@ void main() {
       expect(presenter.calls, hasLength(2));
     },
   );
+
+  testWidgets('disabling the message while the menu is open closes it', (
+    tester,
+  ) async {
+    var enabled = true;
+    late StateSetter setOuter;
+    await tester.pumpWidget(
+      harness(
+        StatefulBuilder(
+          builder: (context, setState) {
+            setOuter = setState;
+            return message(enabled: enabled);
+          },
+        ),
+      ),
+    );
+    await tester.longPress(find.byKey(bubbleKey));
+    await tester.pumpAndSettle();
+    expect(find.byType(ReactionBar), findsOneWidget);
+    setOuter(() => enabled = false);
+    await tester.pumpAndSettle();
+    expect(find.byType(ReactionBar), findsNothing);
+  });
+
+  group('a pending hover timer does not open the menu', () {
+    Future<void> hover(WidgetTester tester) async {
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(mouse.removePointer);
+      await mouse.addPointer(location: Offset.zero);
+      await mouse.moveTo(tester.getCenter(find.byKey(bubbleKey)));
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    Future<void> expectNoMenu(WidgetTester tester) async {
+      // Apply the configuration change first, then let the hover delay pass.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+      expect(find.byType(ReactionBar), findsNothing);
+    }
+
+    testWidgets('after the message is disabled', (tester) async {
+      var enabled = true;
+      late StateSetter setOuter;
+      await tester.pumpWidget(
+        harness(
+          StatefulBuilder(
+            builder: (context, setState) {
+              setOuter = setState;
+              return message(
+                presenter: const CompactBarPresenter(),
+                triggers: {ReactionTrigger.hover},
+                enabled: enabled,
+              );
+            },
+          ),
+          platform: TargetPlatform.macOS,
+        ),
+      );
+      await hover(tester);
+      setOuter(() => enabled = false);
+      await expectNoMenu(tester);
+    });
+
+    testWidgets('after hover is removed from the triggers', (tester) async {
+      var triggers = {ReactionTrigger.hover, ReactionTrigger.longPress};
+      late StateSetter setOuter;
+      await tester.pumpWidget(
+        harness(
+          StatefulBuilder(
+            builder: (context, setState) {
+              setOuter = setState;
+              return message(
+                presenter: const CompactBarPresenter(),
+                triggers: triggers,
+              );
+            },
+          ),
+          platform: TargetPlatform.macOS,
+        ),
+      );
+      await hover(tester);
+      setOuter(() => triggers = {ReactionTrigger.longPress});
+      await expectNoMenu(tester);
+    });
+
+    testWidgets('after the presenter stops being a CompactBarPresenter', (
+      tester,
+    ) async {
+      ReactionsPresenter presenter = const CompactBarPresenter();
+      late StateSetter setOuter;
+      await tester.pumpWidget(
+        harness(
+          StatefulBuilder(
+            builder: (context, setState) {
+              setOuter = setState;
+              return message(
+                presenter: presenter,
+                triggers: {ReactionTrigger.hover},
+              );
+            },
+          ),
+          platform: TargetPlatform.macOS,
+        ),
+      );
+      await hover(tester);
+      setOuter(() => presenter = const FocusedOverlayPresenter());
+      await expectNoMenu(tester);
+    });
+
+    testWidgets('after a scope stops enabling hover', (tester) async {
+      var triggers = {ReactionTrigger.hover};
+      late StateSetter setOuter;
+      await tester.pumpWidget(
+        harness(
+          StatefulBuilder(
+            builder: (context, setState) {
+              setOuter = setState;
+              return ChatReactionsScope(
+                triggers: triggers,
+                child: message(presenter: const CompactBarPresenter()),
+              );
+            },
+          ),
+          platform: TargetPlatform.macOS,
+        ),
+      );
+      await hover(tester);
+      setOuter(() => triggers = {ReactionTrigger.longPress});
+      await expectNoMenu(tester);
+    });
+  });
 }
