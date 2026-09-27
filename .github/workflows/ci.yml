@@ -108,8 +108,12 @@ jobs:
         run: flutter build web
 
   example-tests:
-    name: Example tests
+    name: Example tests (Flutter ${{ matrix.flutter }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        flutter: ['3.32.x', 'stable']
     defaults:
       run:
         working-directory: example
@@ -118,6 +122,8 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          # Empty for 'stable' (latest stable release), pinned otherwise.
+          flutter-version: ${{ matrix.flutter != 'stable' && matrix.flutter || '' }}
           cache: true
       - run: flutter pub get
       - name: Analyze example
