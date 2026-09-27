@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,6 +17,19 @@ class RecordingPresenter extends ReactionsPresenter {
   @override
   Future<void> show(BuildContext context, ReactionsMenuContext menu) async {
     shown.add(menu);
+  }
+}
+
+/// Records every `show()` call and never completes on its own, so a test can
+/// hold the menu "open" indefinitely and control exactly when it closes.
+class _PendingPresenter extends ReactionsPresenter {
+  final List<Completer<void>> calls = [];
+
+  @override
+  Future<void> show(BuildContext context, ReactionsMenuContext menu) {
+    final completer = Completer<void>();
+    calls.add(completer);
+    return completer.future;
   }
 }
 
@@ -206,19 +221,60 @@ void main() {
     expect(find.byType(ReactionBar), findsNothing);
   });
 
-  testWidgets('does not open twice while open', (tester) async {
-    final presenter = CustomPresenter(builder: (_, _, _) => const SizedBox());
-    await tester.pumpWidget(harness(message(presenter: presenter)));
-    await tester.longPress(find.byKey(bubbleKey));
-    await tester.pumpAndSettle();
-    final routes = find.byType(SizedBox).evaluate().length;
-    await tester.longPress(find.byKey(bubbleKey), warnIfMissed: false);
-    await tester.pumpAndSettle();
-    // The second long press lands on the (contentless) menu route rather
-    // than re-entering `_open`, so the guard is exercised indirectly: the
-    // count must never exceed `routes` (a duplicate route would add another
-    // SizedBox). The route's own barrier may legitimately treat this as a
-    // tap outside and dismiss, which is not a double-open.
-    expect(find.byType(SizedBox).evaluate().length, lessThanOrEqualTo(routes));
-  });
+  testWidgets(
+    'a second long press while open is absorbed by the route barrier, '
+    'dismissing the menu',
+    (tester) async {
+      const menuKey = Key('custom-menu');
+      final presenter = CustomPresenter(
+        builder: (_, _, _) => const SizedBox(key: menuKey),
+      );
+      await tester.pumpWidget(harness(message(presenter: presenter)));
+      await tester.longPress(find.byKey(bubbleKey));
+      await tester.pumpAndSettle();
+      expect(find.byKey(menuKey), findsOneWidget);
+
+      // The custom presenter's content is a bare SizedBox that doesn't
+      // occupy the anchor's position, so this second long press lands on the
+      // route's own dismissible barrier rather than on ReactableMessage's
+      // gesture detector, closing the menu. This does not exercise the
+      // `_menu != null` re-entry guard directly; see the test below for that.
+      await tester.longPress(find.byKey(bubbleKey), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(find.byKey(menuKey), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'the re-entry guard blocks a second trigger while show() is pending',
+    (tester) async {
+      final presenter = _PendingPresenter();
+      await tester.pumpWidget(harness(message(presenter: presenter)));
+      final semantics = tester.widget<Semantics>(
+        find.byWidgetPredicate(
+          (w) => w is Semantics && w.properties.customSemanticsActions != null,
+        ),
+      );
+      final open = semantics.properties.customSemanticsActions!.values.single;
+
+      open();
+      await tester.pump();
+      expect(presenter.calls, hasLength(1));
+
+      // Triggered again while the first `show()` is still pending: the
+      // `_menu != null` guard in `_open` must bail out before calling
+      // `show()` a second time.
+      open();
+      await tester.pump();
+      expect(presenter.calls, hasLength(1));
+
+      // Completing the pending call resets `_menu` (in `_open`'s `finally`),
+      // so a subsequent trigger opens the menu again.
+      presenter.calls.single.complete();
+      await tester.pump();
+      open();
+      await tester.pump();
+      expect(presenter.calls, hasLength(2));
+    },
+  );
 }

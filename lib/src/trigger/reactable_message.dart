@@ -186,7 +186,6 @@ class _ReactableMessageState extends State<ReactableMessage> {
 
     if (enabled) {
       result = GestureDetector(
-        behavior: HitTestBehavior.opaque,
         onLongPress: triggers.contains(ReactionTrigger.longPress)
             ? () => _open(ReactionTrigger.longPress)
             : null,

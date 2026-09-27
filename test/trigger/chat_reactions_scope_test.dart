@@ -25,11 +25,21 @@ void main() {
           child: const Column(
             children: [
               ReactableMessage(
-                child: SizedBox(key: Key('a'), width: 50, height: 50),
+                child: SizedBox(
+                  key: Key('a'),
+                  width: 50,
+                  height: 50,
+                  child: ColoredBox(color: Colors.green),
+                ),
               ),
               ReactableMessage(
                 quickReactions: ['✅'],
-                child: SizedBox(key: Key('b'), width: 50, height: 50),
+                child: SizedBox(
+                  key: Key('b'),
+                  width: 50,
+                  height: 50,
+                  child: ColoredBox(color: Colors.green),
+                ),
               ),
             ],
           ),
