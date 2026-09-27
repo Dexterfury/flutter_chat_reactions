@@ -366,9 +366,9 @@ Runs on pull requests and on pushes to `main`. It uses a matrix of Flutter `3.32
 8. run the example's integration tests on `flutter-tester` where possible
 
 ### 14.2 `release-please.yml`
-- Runs on pushes to `main`, using `googleapis/release-please-action@v4` with `release-type: dart`.
-- The version in the README is kept up to date through `<!-- x-release-please-version -->` markers.
-- It uses the secret `RELEASE_PLEASE_TOKEN`, a fine-grained PAT scoped to this repository with Contents: RW and Pull requests: RW. The token is needed because a tag created with `GITHUB_TOKEN` does not trigger other workflows.
+- Runs on pushes to `main`, using `googleapis/release-please-action@v5` with `release-type: dart`.
+- The version in the README is kept up to date through the `# x-release-please-version` marker on the README install line.
+- It uses the secret `RELEASE_PLEASE_TOKEN`, a fine-grained PAT scoped to this repository with Contents: RW, Pull requests: RW and Issues: RW (release-please applies and reads `autorelease: pending`/`autorelease: tagged` labels to find and tag the release PR). The token is needed because a tag created with `GITHUB_TOKEN` does not trigger other workflows.
 - `release-please-config.json` and `.release-please-manifest.json` are seeded at `0.2.7`, with `release-as: 1.0.0` for the first run.
 
 ### 14.3 `publish.yml`
@@ -377,14 +377,22 @@ Runs on pull requests and on pushes to `main`. It uses a matrix of Flutter `3.32
 - Required permissions: `id-token: write`.
 
 ### 14.4 `demo-gifs.yml`
-Runs on `workflow_dispatch` and on `release: published`, on `macos-latest`:
-1. Boot the latest available iPhone Pro simulator.
-2. Run `xcrun simctl status_bar booted override --time 9:41 --batteryLevel 100 --cellularBars 4 --wifiBars 3`.
-3. For each demo × theme: start `xcrun simctl io booted recordVideo`, run `flutter test integration_test/demo_script_test.dart -d <sim> --dart-define=DEMO=… --dart-define=THEME=…`, then stop recording with SIGINT.
-4. Convert each video with `ffmpeg` (trim, `fps=20`, `scale=320:-1`, palettegen/paletteuse), then `gifsicle -O3 --lossy=40`. Target size is 1.5 MB or less.
-5. Open a PR with `peter-evans/create-pull-request` updating `doc/gifs/<demo>_<theme>.gif`.
+Runs on `workflow_dispatch`, on `release: published`, and on a push to any non-`main` branch whose
+head commit message contains `[record-gifs]` (with `record-demos: <slugs>` and
+`record-themes: <themes>` lines in that message narrowing the run), on `macos-latest`:
+1. Install Flutter, ffmpeg and gifsicle, then run `tool/record_gifs.sh` with the chosen demos and
+   themes — the script boots the latest available iPhone Pro simulator, overrides the status bar,
+   and for each demo × theme records `integration_test/demo_script_test.dart` with `xcrun simctl io
+   booted recordVideo`, converts the video with `ffmpeg` (trim, `fps=20`, `scale=320:-1`,
+   palettegen/paletteuse) and shrinks it with `gifsicle -O3 --lossy=40` (target 1.5 MB or less).
+2. Upload the recorded GIFs and any recording logs as workflow artifacts.
+3. Push a `demo-gifs/<run>` branch with the updated `doc/gifs/<demo>_<theme>.gif` files. On a branch
+   push or a published release, it also opens a PR with `gh pr create`, authenticated with
+   `RELEASE_PLEASE_TOKEN` (no `peter-evans/create-pull-request` action) — GitHub Actions may not
+   create PRs in this repo with `GITHUB_TOKEN`. If the token secret is absent, the branch is pushed
+   and a notice asks the maintainer to open the PR manually.
 
-`tool/record_gifs.sh` repeats the same steps for recording locally on a Mac.
+`tool/record_gifs.sh` repeats the same recording steps for running locally on a Mac.
 
 ### 14.5 Manual setup required from the maintainer
 1. pub.dev → package Admin → Automated publishing: enable GitHub Actions, set the repository to `Dexterfury/flutter_chat_reactions` and the tag pattern to `{{version}}`, and require the environment `pub.dev`.
@@ -423,3 +431,10 @@ Each phase ends green in CI.
 7. Additive API from the final review: `CustomPresenter(dismissible:)`, `ReactionAction.copyWith`, `emojiBuilder` on `ReactionDetailsList`/`ReactionDetailsSheet`/`showReactionDetails`, `ReactionDetailsList(scrollable:)`, and `ChatReactionsTheme` value equality.
 8. Presenters capture the message's inherited themes (`InheritedTheme.capture`), and `ChatReactionsScope` is an `InheritedTheme`, so local themes, scopes and localizations reach the menus.
 9. The minimum is Flutter 3.32 / Dart 3.8 (not 3.27/3.6), because `flutter_lints` 6 requires it.
+10. §14.2 and §14.4 above are corrected from the original spec text: release-please-action is
+    pinned to `@v5` (not `@v4`), the README version marker is `# x-release-please-version` on the
+    install line (not `<!-- x-release-please-version -->`), the release token also needs
+    `Issues: Read and write`, `demo-gifs.yml` runs `tool/record_gifs.sh` rather than inlining the
+    simulator steps and triggers on dispatch, a published release, or a non-`main` push containing
+    `[record-gifs]` (with `record-demos:`/`record-themes:` lines), and it opens PRs with `gh pr
+    create` authenticated by `RELEASE_PLEASE_TOKEN` rather than `peter-evans/create-pull-request`.
