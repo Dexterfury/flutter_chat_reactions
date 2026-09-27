@@ -19,6 +19,7 @@ const Duration linger = Duration(milliseconds: 1500);
 final Map<DemoId, DemoScript> demoScripts = {
   DemoId.quickStart: _quickStart,
   DemoId.messenger: _messenger,
+  DemoId.team: _team,
 };
 
 /// Runs [id]'s script.
@@ -86,5 +87,24 @@ Future<void> _messenger(WidgetTester tester, Pace pace) async {
   await openMenu(tester, 'm5', pace);
   await tapAndPace(tester, find.text('Delete'), pace);
   expect(messageFinder('m5'), findsNothing);
+  await pace(linger);
+}
+
+Future<void> _team(WidgetTester tester, Pace pace) async {
+  await pace(beat);
+  await openMenu(tester, 'm1', pace);
+  await tapAndPace(tester, reactionInBar('🎉'), pace);
+  await openMenu(tester, 'm1', pace);
+  await tapAndPace(tester, reactionInBar(':party:'), pace);
+  // Multiple reactions per user: both stay.
+  expectInSummary('m1', find.text('🎉'));
+  expectInSummary('m1', find.byKey(const ValueKey('emoji-:party:')));
+  // Tap an existing chip to +1 it.
+  await tapAndPace(
+    tester,
+    find.descendant(of: summaryFinder('m2'), matching: find.text('👍')),
+    pace,
+  );
+  expectInSummary('m2', find.text('3'));
   await pace(linger);
 }
