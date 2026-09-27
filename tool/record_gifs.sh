@@ -16,7 +16,12 @@ LOG_DIR="${RECORD_LOG_DIR:-$WORK}"
 mkdir -p "$LOG_DIR"
 cleanup() {
   # Stop any recording/test processes we may have left running, best-effort.
-  jobs -p | xargs -r kill 2>/dev/null || true
+  # (No xargs here: xargs -r is a GNU extension that macOS/BSD xargs rejects.)
+  local pids
+  pids="$(jobs -p)"
+  if [ -n "$pids" ]; then
+    kill $pids 2>/dev/null || true
+  fi
   if [ -n "${UDID:-}" ]; then
     xcrun simctl status_bar "$UDID" clear 2>/dev/null || true
   fi
