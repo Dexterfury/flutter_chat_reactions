@@ -4,8 +4,9 @@ import 'package:example/widgets/chat_bubble.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
 
-/// The smallest useful integration: a controller, ReactableMessage around
-/// each bubble, and a ReactionsSummaryView below it.
+/// The runnable version of the Quick start snippet in `example/README.md`:
+/// a controller, ReactableMessage around each bubble, and a
+/// ReactionsSummaryView below it.
 class QuickStartDemo extends StatefulWidget {
   /// Creates the demo.
   const QuickStartDemo({super.key});

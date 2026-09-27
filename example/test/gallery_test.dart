@@ -4,6 +4,8 @@ import 'package:example/app/gallery_app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../integration_test/demo_script.dart';
+
 void main() {
   void phone(WidgetTester tester) {
     tester.view.physicalSize = const Size(1170, 2532);
@@ -71,5 +73,16 @@ void main() {
     await tester.pumpAndSettle();
     final context = tester.element(find.byType(Scaffold));
     expect(Theme.of(context).brightness, Brightness.dark);
+  });
+
+  test('every demo has a screen and a script', () {
+    for (final id in DemoId.values) {
+      expect(
+        demoBuilders.containsKey(id),
+        isTrue,
+        reason: '${id.slug} builder',
+      );
+      expect(demoScripts.containsKey(id), isTrue, reason: '${id.slug} script');
+    }
   });
 }

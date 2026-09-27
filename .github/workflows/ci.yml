@@ -106,3 +106,21 @@ jobs:
       - name: Build web
         if: matrix.target == 'web'
         run: flutter build web
+
+  example-tests:
+    name: Example tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: example
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Analyze example
+        run: flutter analyze --fatal-infos
+      - name: Test example (gallery + demo scripts in fake time)
+        run: flutter test
