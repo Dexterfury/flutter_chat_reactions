@@ -30,7 +30,7 @@ void main() {
     // tool/record_gifs.sh starts the simulator recording when it sees
     // DEMO_SCRIPT_START and stops it at DEMO_SCRIPT_END.
     debugPrint('DEMO_SCRIPT_START');
-    await Future<void>.delayed(const Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 2));
     await runDemoScript(
       tester,
       demo,

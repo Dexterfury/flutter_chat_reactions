@@ -6,31 +6,76 @@
 #   tool/record_gifs.sh messenger team   # selected demos
 #   THEMES=light tool/record_gifs.sh     # light only
 #   SIMULATOR_UDID=<udid> tool/record_gifs.sh
+#   RECORD_LOG_DIR=<dir> tool/record_gifs.sh   # keep per-run logs after exit
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/doc/gifs"
 WORK="$(mktemp -d)"
-trap 'rm -rf "$WORK"' EXIT
+LOG_DIR="${RECORD_LOG_DIR:-$WORK}"
+mkdir -p "$LOG_DIR"
+cleanup() {
+  # Stop any recording/test processes we may have left running, best-effort.
+  jobs -p | xargs -r kill 2>/dev/null || true
+  if [ -n "${UDID:-}" ]; then
+    xcrun simctl status_bar "$UDID" clear 2>/dev/null || true
+  fi
+  rm -rf "$WORK"
+}
+trap cleanup EXIT
 ALL_DEMOS=(quickstart messenger team telegram custom theming)
+ALL_THEMES=(light dark)
 if [ "$#" -gt 0 ]; then DEMOS=("$@"); else DEMOS=("${ALL_DEMOS[@]}"); fi
 read -r -a THEME_LIST <<< "${THEMES:-light dark}"
 MAX_BYTES=$((1500 * 1024))
+
+is_in() {
+  local needle="$1"; shift
+  local hay
+  for hay in "$@"; do
+    [ "$hay" = "$needle" ] && return 0
+  done
+  return 1
+}
+
+# Validate arguments before touching any macOS-only tool, so a typo fails
+# fast (and fails the same way in CI and locally).
+for demo in "${DEMOS[@]}"; do
+  if ! is_in "$demo" "${ALL_DEMOS[@]}"; then
+    echo "error: unknown demo '$demo' (valid: ${ALL_DEMOS[*]})" >&2
+    exit 2
+  fi
+done
+for theme in "${THEME_LIST[@]}"; do
+  if ! is_in "$theme" "${ALL_THEMES[@]}"; then
+    echo "error: unknown theme '$theme' (valid: ${ALL_THEMES[*]})" >&2
+    exit 2
+  fi
+done
 
 for tool in xcrun flutter ffmpeg gifsicle python3; do
   command -v "$tool" >/dev/null || { echo "error: $tool not found" >&2; exit 1; }
 done
 
-# Newest available "iPhone <n> Pro" simulator on the newest iOS runtime.
+# Newest available "iPhone <n> Pro" simulator on a runtime no newer than the
+# default Xcode's SDK. GitHub's macOS images can have beta simulator runtimes
+# installed that are newer than the default Xcode's SDK; `flutter test` fails
+# against those at the xcodebuild step, so they must be excluded.
 pick_simulator() {
+  local sdk_version
+  sdk_version="$(xcrun --sdk iphonesimulator --show-sdk-version)"
   xcrun simctl list devices available --json | python3 -c '
 import json, re, sys
+
+sdk = tuple(int(p) for p in sys.argv[1].split(".")[:2])
 best = None
 for runtime, devices in json.load(sys.stdin)["devices"].items():
     m = re.search(r"iOS-(\d+)-(\d+)", runtime)
     if not m:
         continue
     version = (int(m.group(1)), int(m.group(2)))
+    if version > sdk:
+        continue
     for d in devices:
         name = d["name"]
         if name.startswith("iPhone") and name.endswith(" Pro"):
@@ -38,9 +83,9 @@ for runtime, devices in json.load(sys.stdin)["devices"].items():
             if best is None or key > best[0]:
                 best = (key, d["udid"])
 if best is None:
-    sys.exit("no available iPhone Pro simulator")
+    sys.exit("no available iPhone Pro simulator at or below SDK " + sys.argv[1])
 print(best[1])
-'
+' "$sdk_version"
 }
 
 UDID="${SIMULATOR_UDID:-$(pick_simulator)}"
@@ -56,7 +101,7 @@ flutter pub get >/dev/null
 
 record() {
   local demo="$1" theme="$2"
-  local log="$WORK/$demo-$theme.log"
+  local log="$LOG_DIR/$demo-$theme.log"
   local video="$WORK/$demo-$theme.mp4"
   local gif="$OUT/${demo}_${theme}.gif"
   local rec_pid="" test_pid size
@@ -67,17 +112,17 @@ record() {
   test_pid=$!
   # Start recording at DEMO_SCRIPT_START, stop at DEMO_SCRIPT_END.
   while kill -0 "$test_pid" 2>/dev/null; do
-    if [ -z "$rec_pid" ] && grep -q DEMO_SCRIPT_START "$log"; then
+    if [ -z "$rec_pid" ] && grep -qs DEMO_SCRIPT_START "$log"; then
       xcrun simctl io "$UDID" recordVideo --codec=h264 --force "$video" &
       rec_pid=$!
     fi
-    if [ -n "$rec_pid" ] && grep -q DEMO_SCRIPT_END "$log"; then
+    if [ -n "$rec_pid" ] && grep -qs DEMO_SCRIPT_END "$log"; then
       break
     fi
     sleep 0.2
   done
   if [ -n "$rec_pid" ]; then
-    kill -INT "$rec_pid"
+    kill -INT "$rec_pid" 2>/dev/null || true
     wait "$rec_pid" || true
   fi
   if ! wait "$test_pid"; then

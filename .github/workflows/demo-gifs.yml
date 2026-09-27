@@ -41,14 +41,25 @@ jobs:
       - name: Record GIFs
         env:
           DEMOS: ${{ inputs.demos }}
+          RECORD_LOG_DIR: ${{ runner.temp }}/gif-logs
         # $DEMOS is intentionally unquoted: it is a space-separated list.
         run: tool/record_gifs.sh $DEMOS
 
       - name: Upload GIFs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: demo-gifs
           path: doc/gifs/*.gif
+          if-no-files-found: ignore
+
+      - name: Upload recording logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-gif-logs
+          path: ${{ runner.temp }}/gif-logs/*.log
+          if-no-files-found: ignore
 
       - name: Push branch and open PR
         env:
