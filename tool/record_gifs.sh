@@ -8,9 +8,13 @@
 #   SIMULATOR_UDID=<udid> tool/record_gifs.sh
 #   RECORD_LOG_DIR=<dir> tool/record_gifs.sh   # keep per-run logs after exit
 #   RUN_TIMEOUT=<seconds> tool/record_gifs.sh  # per-demo timeout (default 900)
+#   RUN_RETRIES=<n> tool/record_gifs.sh        # infra-failure retries (default 1)
 #
 # A failed run leaves <demo>-<theme>.log, a -failure.png screenshot and the
-# partial .mp4 in RECORD_LOG_DIR.
+# partial .mp4 in RECORD_LOG_DIR. A run that fails before DEMO_SCRIPT_START
+# appears in the log (an infrastructure failure, e.g. a simulator/tooling
+# glitch) is retried; its log/screenshot are kept as
+# <demo>-<theme>-attemptN.log/.png.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -117,6 +121,11 @@ APP_BUNDLE_ID="$(sed -n 's/.*PRODUCT_BUNDLE_IDENTIFIER = \([^;]*\);.*/\1/p' \
 # prints "Test failed." / "Some tests failed."; the github reporter (the
 # default on GitHub Actions) prints "0 tests passed, 1 failed.".
 FAIL_PATTERN='Test failed\.|Some tests failed|tests? passed, [0-9]+ failed'
+# Log lines that mean the simulator/tooling failed before the demo script
+# itself ran (a known intermittent iOS-simulator issue, not a demo failure).
+# A run ended by one of these is retried when DEMO_SCRIPT_START never
+# appeared (see attempt_once/record below).
+INFRA_PATTERN='No tests ran\.|Error waiting for a debug connection'
 
 # Sends SIGTERM to $1 and its children, waits up to $2 seconds for it to exit,
 # then SIGKILLs whatever is left.
@@ -135,9 +144,16 @@ stop_process() {
   fi
 }
 
-record() {
-  local demo="$1" theme="$2"
-  local log="$LOG_DIR/$demo-$theme.log"
+# Runs one attempt at recording $demo/$theme, writing the flutter-test log to
+# $log and, on failure, a screenshot to $png. Returns 0 on success, 1 on a
+# real demo failure (a failure line appeared after DEMO_SCRIPT_START, so a
+# retry would not help), or 2 on an infrastructure failure (DEMO_SCRIPT_START
+# never appeared in the log, e.g. a simulator/tooling glitch). On a return of
+# 1 or 2, sets the global ATTEMPT_REASON to the log line (or condition) that
+# ended the run, for the caller to report.
+ATTEMPT_REASON=""
+attempt_once() {
+  local demo="$1" theme="$2" log="$3" png="$4"
   local video="$WORK/$demo-$theme.mp4"
   local gif="$OUT/${demo}_${theme}.gif"
   local rec_pid="" test_pid size
@@ -150,17 +166,18 @@ record() {
     --dart-define=DEMO="$demo" --dart-define=THEME="$theme" >"$log" 2>&1 &
   test_pid=$!
   start="$SECONDS"
-  # Poll until the run is over: the test process exited, DEMO_SCRIPT_END or a
-  # failure line shows up in the log, or the per-run timeout elapses --
-  # whichever comes first. `flutter test` on a simulator does not always exit
-  # on its own once the Dart test body is done (a hung run must not block the
-  # rest of the demos), so we can't just `wait` for it.
+  # Poll until the run is over: the test process exited, DEMO_SCRIPT_END, a
+  # failure line, or an infrastructure-failure line shows up in the log, or
+  # the per-run timeout elapses -- whichever comes first. `flutter test` on a
+  # simulator does not always exit on its own once the Dart test body is done
+  # (a hung run must not block the rest of the demos), so we can't just
+  # `wait` for it.
   while kill -0 "$test_pid" 2>/dev/null; do
     if [ -z "$rec_pid" ] && grep -qs DEMO_SCRIPT_START "$log"; then
       xcrun simctl io "$UDID" recordVideo --codec=h264 --force "$video" &
       rec_pid=$!
     fi
-    if grep -Eqs "DEMO_SCRIPT_END|All tests passed!|$FAIL_PATTERN" "$log"; then
+    if grep -Eqs "DEMO_SCRIPT_END|All tests passed!|$FAIL_PATTERN|$INFRA_PATTERN" "$log"; then
       break
     fi
     if [ "$((SECONDS - start))" -ge "$run_timeout" ]; then
@@ -176,11 +193,10 @@ record() {
   # status says nothing about the demo. (Checked again after the process has
   # exited, since failure lines can follow DEMO_SCRIPT_END.)
   if [ "$timed_out" -eq 1 ] || ! grep -qs DEMO_SCRIPT_END "$log" ||
-    grep -Eqs "$FAIL_PATTERN" "$log"; then
+    grep -Eqs "$FAIL_PATTERN|$INFRA_PATTERN" "$log"; then
     failed=1
     # Capture what the simulator shows before anything is torn down.
-    xcrun simctl io "$UDID" screenshot "$LOG_DIR/$demo-$theme-failure.png" \
-      >/dev/null 2>&1 || true
+    xcrun simctl io "$UDID" screenshot "$png" >/dev/null 2>&1 || true
   fi
 
   # Stop the recording (best-effort: it may never have started, e.g. on a
@@ -219,28 +235,82 @@ record() {
     xcrun simctl terminate "$UDID" "$APP_BUNDLE_ID" >/dev/null 2>&1 || true
   fi
 
-  if [ "$failed" -eq 0 ] && grep -Eqs "$FAIL_PATTERN" "$log"; then
+  if [ "$failed" -eq 0 ] && grep -Eqs "$FAIL_PATTERN|$INFRA_PATTERN" "$log"; then
     failed=1
   fi
-  if [ "$failed" -eq 1 ]; then
-    cat "$log"
-    echo "error: demo script failed: $demo ($theme)" >&2
-    return 1
+  if [ "$failed" -eq 0 ] && [ -z "$rec_pid" ]; then
+    failed=1
+  fi
+
+  if [ "$failed" -eq 0 ]; then
+    ffmpeg -loglevel error -y -i "$video" -vf \
+      "fps=20,scale=320:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5" \
+      "$WORK/raw.gif"
+    gifsicle -O3 --lossy=40 -o "$gif" "$WORK/raw.gif"
+    size=$(wc -c <"$gif")
+    echo "    $(basename "$gif"): $((size / 1024)) KB"
+    if [ "$size" -gt "$MAX_BYTES" ]; then
+      echo "warning: $(basename "$gif") is larger than 1.5 MB" >&2
+    fi
+    return 0
+  fi
+
+  # A failure before DEMO_SCRIPT_START ever appeared is an infrastructure
+  # failure (simulator/tooling), regardless of which line or condition ended
+  # the run; a failure after DEMO_SCRIPT_START is a real demo failure.
+  if [ "$timed_out" -eq 1 ]; then
+    ATTEMPT_REASON="exceeded ${run_timeout}s without finishing"
+  else
+    ATTEMPT_REASON="$(grep -Em1 "$FAIL_PATTERN|$INFRA_PATTERN" "$log" 2>/dev/null || true)"
+    [ -n "$ATTEMPT_REASON" ] || ATTEMPT_REASON="DEMO_SCRIPT_END not found in log"
   fi
   if [ -z "$rec_pid" ]; then
-    cat "$log"
-    echo "error: DEMO_SCRIPT_START marker not seen for $demo ($theme)" >&2
+    return 2
+  fi
+  cat "$log"
+  echo "error: demo script failed: $demo ($theme)" >&2
+  return 1
+}
+
+# Runs $demo/$theme, retrying up to RUN_RETRIES times (default 1) when a run
+# fails as an infrastructure failure (see attempt_once). A real demo failure
+# is never retried.
+record() {
+  local demo="$1" theme="$2"
+  local run_retries="${RUN_RETRIES:-1}"
+  local log="$LOG_DIR/$demo-$theme.log"
+  local png="$LOG_DIR/$demo-$theme-failure.png"
+  local attempt=1 status
+
+  while true; do
+    ATTEMPT_REASON=""
+    status=0
+    attempt_once "$demo" "$theme" "$log" "$png" || status=$?
+    if [ "$status" -eq 0 ]; then
+      return 0
+    fi
+    if [ "$status" -eq 2 ] && [ "$attempt" -le "$run_retries" ]; then
+      echo "retrying $demo ($theme) after infrastructure failure: $ATTEMPT_REASON"
+      mv -f "$log" "$LOG_DIR/$demo-$theme-attempt${attempt}.log" 2>/dev/null || true
+      if [ -f "$png" ]; then
+        mv -f "$png" "$LOG_DIR/$demo-$theme-attempt${attempt}.png" 2>/dev/null || true
+      fi
+      # Give the simulator a clean slate before retrying: a debug-connection
+      # or "no tests ran" failure can leave it in a bad state.
+      xcrun simctl shutdown "$UDID" 2>/dev/null || true
+      xcrun simctl boot "$UDID" 2>/dev/null || true
+      xcrun simctl bootstatus "$UDID" -b
+      xcrun simctl status_bar "$UDID" override --time 9:41 --dataNetwork wifi \
+        --wifiBars 3 --cellularBars 4 --batteryState charged --batteryLevel 100
+      attempt=$((attempt + 1))
+      continue
+    fi
+    if [ "$status" -eq 2 ]; then
+      cat "$log"
+      echo "error: DEMO_SCRIPT_START marker not seen for $demo ($theme) after $attempt attempt(s)" >&2
+    fi
     return 1
-  fi
-  ffmpeg -loglevel error -y -i "$video" -vf \
-    "fps=20,scale=320:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5" \
-    "$WORK/raw.gif"
-  gifsicle -O3 --lossy=40 -o "$gif" "$WORK/raw.gif"
-  size=$(wc -c <"$gif")
-  echo "    $(basename "$gif"): $((size / 1024)) KB"
-  if [ "$size" -gt "$MAX_BYTES" ]; then
-    echo "warning: $(basename "$gif") is larger than 1.5 MB" >&2
-  fi
+  done
 }
 
 for demo in "${DEMOS[@]}"; do
