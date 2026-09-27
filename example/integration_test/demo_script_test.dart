@@ -7,12 +7,18 @@ import 'demo_script.dart';
 
 /// Runs one demo's script in real time on a device or simulator.
 ///
-///   flutter test integration_test/demo_script_test.dart -d &lt;device&gt; \
-///     --dart-define=DEMO=messenger --dart-define=THEME=dark
+/// ```bash
+/// flutter test integration_test/demo_script_test.dart -d <device> \
+///   --dart-define=DEMO=messenger --dart-define=THEME=dark
+/// ```
 ///
 /// Plan 4's GIF workflow records the simulator while this runs.
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  // Draw every frame (not only on explicit pumps) so recordings are smooth.
+  // The binding's touch-indicator circles are kept on purpose: they show
+  // where the "finger" lands in the GIFs.
+  binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
   final demo = DemoId.fromEnvironment() ?? DemoId.messenger;
 
   testWidgets('demo script: ${demo.slug}', (tester) async {

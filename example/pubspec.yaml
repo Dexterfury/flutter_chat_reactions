@@ -44,6 +44,9 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
+  # Mocked in the emoji picker sheet smoke test (emoji_picker_flutter stores
+  # recent emoji there).
+  shared_preferences: ^2.3.3
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

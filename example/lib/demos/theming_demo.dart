@@ -26,11 +26,23 @@ class _ThemingDemoState extends State<ThemingDemo> {
   ];
 
   final _chat = DemoChatModel();
-  Brightness _brightness = Brightness.light;
+  late Brightness _brightness;
+  bool _brightnessSeeded = false;
   ReactionsVisualStyle _style = ReactionsVisualStyle.adaptive;
   Color _seed = Colors.indigo;
   double _textScale = 1;
   bool _rtl = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Start from the app's brightness (e.g. THEME=dark); the toggle owns it
+    // afterwards.
+    if (!_brightnessSeeded) {
+      _brightnessSeeded = true;
+      _brightness = Theme.of(context).brightness;
+    }
+  }
 
   @override
   void dispose() {

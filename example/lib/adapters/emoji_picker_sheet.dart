@@ -13,19 +13,35 @@ Future<String?> showEmojiPickerSheet(BuildContext context) {
     context: context,
     useRootNavigator: true,
     showDragHandle: true,
-    builder: (sheetContext) => SizedBox(
-      height: 340,
-      child: picker.EmojiPicker(
+    builder: (sheetContext) {
+      final scheme = Theme.of(sheetContext).colorScheme;
+      return picker.EmojiPicker(
         onEmojiSelected: (_, emoji) =>
             Navigator.of(sheetContext).pop(emoji.emoji),
         config: picker.Config(
           height: 320,
           checkPlatformCompatibility: true,
           emojiViewConfig: picker.EmojiViewConfig(
-            backgroundColor: Theme.of(sheetContext).colorScheme.surface,
+            backgroundColor: scheme.surface,
+          ),
+          categoryViewConfig: picker.CategoryViewConfig(
+            backgroundColor: scheme.surface,
+            indicatorColor: scheme.primary,
+            iconColor: scheme.onSurfaceVariant,
+            iconColorSelected: scheme.primary,
+            backspaceColor: scheme.primary,
+            dividerColor: scheme.outlineVariant,
+          ),
+          searchViewConfig: picker.SearchViewConfig(
+            backgroundColor: scheme.surface,
+            buttonIconColor: scheme.onSurfaceVariant,
+          ),
+          // No text field to edit, so no backspace / search action bar.
+          bottomActionBarConfig: const picker.BottomActionBarConfig(
+            enabled: false,
           ),
         ),
-      ),
-    ),
+      );
+    },
   );
 }

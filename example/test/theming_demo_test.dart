@@ -1,3 +1,5 @@
+import 'package:example/app/demo_id.dart';
+import 'package:example/app/gallery_app.dart';
 import 'package:example/demos/theming_demo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
@@ -71,5 +73,18 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('control-seed-2')));
     await tester.pumpAndSettle();
     expect(Theme.of(previewContext(tester)).colorScheme.primary, isNot(before));
+  });
+
+  testWidgets('preview starts in the ambient (dark) brightness', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1170, 2532);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      const GalleryApp(initialDemo: DemoId.theming, themeMode: ThemeMode.dark),
+    );
+    await tester.pumpAndSettle();
+    expect(Theme.of(previewContext(tester)).brightness, Brightness.dark);
   });
 }
