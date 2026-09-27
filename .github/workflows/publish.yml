@@ -1,6 +1,6 @@
 # Publishes to pub.dev when a version tag (e.g. 1.0.0 or 1.1.0-beta.1) is pushed.
 # Authentication uses GitHub OIDC; no pub.dev secrets are stored in the repo.
-# One-time setup (maintainer): see docs/superpowers/specs/2026-09-26-v1-modernization-design.md §14.5.
+# One-time setup (maintainer): see RELEASING.md.
 name: Publish to pub.dev
 
 on:

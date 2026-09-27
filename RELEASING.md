@@ -12,21 +12,55 @@ pub.dev. This page covers the one-time setup and the maintenance chores.
 2. **GitHub environment** — repository *Settings → Environments → New environment* named
    `pub.dev`. Optionally add yourself as a required reviewer so every publish waits for approval.
 3. **Release token** — create a fine-grained personal access token limited to this repository with
-   *Contents: Read and write* and *Pull requests: Read and write*, then add it as the repository
-   secret `RELEASE_PLEASE_TOKEN` (*Settings → Secrets and variables → Actions*). Release Please and
-   the GIF workflow use it to open PRs; tags it creates can trigger the publish workflow.
+   *Contents: Read and write*, *Pull requests: Read and write* and *Issues: Read and write* (release
+   please applies and reads `autorelease: pending`/`autorelease: tagged` labels to find and tag the
+   release PR), then add it as the repository secret `RELEASE_PLEASE_TOKEN` (*Settings → Secrets and
+   variables → Actions*). Release Please and the GIF workflow use it to open PRs; tags it creates can
+   trigger the publish workflow.
    (Enabling *Settings → Actions → General → Allow GitHub Actions to create and approve pull
    requests* lets the GIF workflow open PRs without the token; Release Please still needs the token
    so its tags trigger publishing.)
 
 ## Shipping 1.0.0
 
-1. Merge the modernization PR into `main` with **Create a merge commit** (not squash), so Release
-   Please sees the individual conventional commits for the changelog.
-2. Release Please opens *"chore(main): release 1.0.0"*. Review the version, CHANGELOG and README
-   install line, then merge it. The generated CHANGELOG compare link (`compare/0.2.7...1.0.0`) is
-   broken because `0.2.7` was never tagged — edit that link out of the PR before merging. Do not fix
-   this by pushing a `0.2.7` tag; that would trigger **Publish to pub.dev**.
+1. Mark the PR ready for review first (it is a draft). Merge the modernization PR into `main` with
+   **Create a merge commit** (not squash), so Release Please sees the individual conventional
+   commits for the changelog.
+2. Release Please opens *"chore(main): release 1.0.0"*. Its generated CHANGELOG entry and PR
+   description are a raw dump of every `feat`/`fix`/`refactor` commit, including fixes to code that
+   was never released, a misleading breaking-change note about `onLongPress` → `onReactionLongPress`
+   (that rename never shipped), an internal aside ("See MIGRATION.md (Plan 4).") from a commit
+   footer, and a CHANGELOG compare link (`compare/0.2.7...1.0.0`) that is broken because `0.2.7` was
+   never tagged. Before merging, replace the generated `## [1.0.0]` entry in both `CHANGELOG.md` and
+   the release PR description (release-please builds the GitHub release from the PR body) with the
+   curated notes below, keeping the `## [1.0.0]` heading line format but without the compare link.
+   Do not fix the broken link by pushing a `0.2.7` tag; that would trigger **Publish to pub.dev**.
+
+   ```markdown
+   ## 1.0.0 (<date>)
+
+   A redesign for any chat app — see [MIGRATION.md](MIGRATION.md) for upgrading from 0.2.x.
+
+   ### Breaking changes
+
+   * New layered API: `ReactableMessage` replaces `ChatMessageWrapper`; `ReactionsSummaryView`
+     replaces `StackedReactions`; `ChatReactionsTheme` (ThemeExtension), `ChatReactionsScope` and
+     presenters replace `ChatReactionsConfig`; `ReactionAction` replaces `MenuItem`;
+     `ReactionsController` methods renamed.
+   * Requires Flutter 3.32+ / Dart 3.8+. No third-party dependencies (emoji picker is pluggable via
+     `onMoreTap`).
+
+   ### Features
+
+   * App-owned data (`ReactionSummary`, `summarize`); optional `ReactionsController` with
+     single/multiple policies and optimistic rollback.
+   * Four presenters: focused overlay (default), compact bar, bottom sheet, headless
+     `CustomPresenter`.
+   * Adaptive Cupertino/Material theming; long-press, double-tap, right-click, hover, keyboard and
+     screen-reader triggers; RTL, keyboard navigation, reduced motion, localization.
+   * `ReactionsSummaryView` chips / stacked / compact layouts and a who-reacted details sheet.
+   * Example gallery with six demos.
+   ```
 3. The tag `1.0.0` triggers **Publish to pub.dev**; approve the `pub.dev` environment if required.
    Publishing the GitHub release also re-records the demo GIFs.
 4. Immediately after `1.0.0` is tagged — before merging any other `feat:`/`fix:` commit to `main` —
