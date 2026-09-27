@@ -67,6 +67,7 @@ void main() {
     final fades = tester.widgetList<FadeTransition>(
       find.ancestor(of: find.text('😂'), matching: find.byType(FadeTransition)),
     );
+    expect(fades, isNotEmpty);
     expect(fades.every((f) => f.opacity.value == 1), isTrue);
   });
 
@@ -161,4 +162,107 @@ void main() {
       expect(find.byType(ReactionBar), findsNothing);
     },
   );
+
+  testWidgets(
+    'macOS: a genuine re-hover after the bar auto-closes (pointer leaves) '
+    'reopens it',
+    (tester) async {
+      const presenter = CompactBarPresenter();
+      const bubbleKey = ValueKey('bubble-scenario-a');
+      await tester.pumpWidget(
+        harness(
+          ChatReactionsScope(
+            presenter: presenter,
+            child: Center(
+              child: ReactableMessage(
+                onReactionSelected: (_) {},
+                child: const SizedBox(key: bubbleKey, width: 100, height: 40),
+              ),
+            ),
+          ),
+          platform: TargetPlatform.macOS,
+        ),
+      );
+
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(gesture.removePointer);
+      await gesture.addPointer(location: Offset.zero);
+      await tester.pump();
+
+      final center = tester.getCenter(find.byKey(bubbleKey));
+      await gesture.moveTo(center);
+      await tester.pump(
+        presenter.hoverDelay + const Duration(milliseconds: 50),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ReactionBar), findsOneWidget);
+
+      // Pointer leaves both the message and the bar; the bar auto-closes
+      // after hoverExitDelay.
+      await gesture.moveTo(const Offset(5, 5));
+      await tester.pump(
+        presenter.hoverExitDelay + const Duration(milliseconds: 50),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ReactionBar), findsNothing);
+
+      // A genuine re-hover of the message must reopen the bar.
+      await gesture.moveTo(center);
+      await tester.pump(
+        presenter.hoverDelay + const Duration(milliseconds: 50),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ReactionBar), findsOneWidget);
+    },
+  );
+
+  testWidgets('macOS: a genuine re-hover after Escape (pointer was on the bar) '
+      'reopens it', (tester) async {
+    const presenter = CompactBarPresenter();
+    const bubbleKey = ValueKey('bubble-scenario-b');
+    await tester.pumpWidget(
+      harness(
+        ChatReactionsScope(
+          presenter: presenter,
+          child: Center(
+            child: ReactableMessage(
+              onReactionSelected: (_) {},
+              child: const SizedBox(key: bubbleKey, width: 100, height: 40),
+            ),
+          ),
+        ),
+        platform: TargetPlatform.macOS,
+      ),
+    );
+
+    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    addTearDown(gesture.removePointer);
+    await gesture.addPointer(location: Offset.zero);
+    await tester.pump();
+
+    final center = tester.getCenter(find.byKey(bubbleKey));
+    await gesture.moveTo(center);
+    await tester.pump(presenter.hoverDelay + const Duration(milliseconds: 50));
+    await tester.pumpAndSettle();
+    expect(find.byType(ReactionBar), findsOneWidget);
+
+    // Move the pointer onto the bar itself.
+    final barCenter = tester.getCenter(find.byType(ReactionBar));
+    await gesture.moveTo(barCenter);
+    await tester.pump();
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    expect(find.byType(ReactionBar), findsNothing);
+
+    // Pointer leaves the (now closed) area entirely.
+    await gesture.moveTo(const Offset(5, 5));
+    await tester.pump();
+
+    // A genuine re-hover of the message must reopen the bar.
+    await gesture.moveTo(center);
+    await tester.pump(presenter.hoverDelay + const Duration(milliseconds: 50));
+    await tester.pumpAndSettle();
+    expect(find.byType(ReactionBar), findsOneWidget);
+  });
 }

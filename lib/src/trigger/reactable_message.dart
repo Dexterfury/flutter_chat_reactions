@@ -95,14 +95,14 @@ class _ReactableMessageState extends State<ReactableMessage> {
   ReactionsMenuContext? _menu;
   Timer? _hoverTimer;
 
-  // While a hover-opened menu is closing, the overlay that occluded this
-  // message is removed and the framework re-hit-tests the pointer, which
-  // fires a synthetic [MouseRegion.onEnter] even though the pointer never
-  // left. Without this guard that synthetic enter would arm a new hover
-  // timer and reopen the menu right after it was dismissed. It is cleared
-  // by the very next enter (real or synthetic), so a genuine exit-then-enter
-  // still reopens the menu normally.
-  bool _suppressNextHoverEnter = false;
+  // Whether the pointer is considered "inside" for hover-open purposes. Only
+  // [MouseRegion.onHover] actually arms the timer (see below), because a
+  // synthetic device-update enter (fired when an overlay that occluded this
+  // message is removed under a still pointer) is never followed by a hover
+  // event unless the pointer really moves. A genuine entry always sends
+  // onEnter immediately followed by onHover, so this stays correct for real
+  // pointer movement.
+  bool _hoverArmed = false;
 
   ChatReactionsScope? get _scope => ChatReactionsScope.maybeOf(context);
 
@@ -158,12 +158,8 @@ class _ReactableMessageState extends State<ReactableMessage> {
       await _presenter.show(context, menu);
     } finally {
       _menu = null;
-      if (mounted) {
-        if (trigger == ReactionTrigger.keyboard) {
-          _focusNode.requestFocus();
-        } else if (trigger == ReactionTrigger.hover) {
-          _suppressNextHoverEnter = true;
-        }
+      if (mounted && trigger == ReactionTrigger.keyboard) {
+        _focusNode.requestFocus();
       }
     }
   }
@@ -213,18 +209,19 @@ class _ReactableMessageState extends State<ReactableMessage> {
       if (triggers.contains(ReactionTrigger.hover) &&
           presenter is CompactBarPresenter) {
         result = MouseRegion(
-          onEnter: (_) {
-            if (_suppressNextHoverEnter) {
-              _suppressNextHoverEnter = false;
-              return;
-            }
-            _hoverTimer?.cancel();
-            _hoverTimer = Timer(
-              presenter.hoverDelay,
-              () => _open(ReactionTrigger.hover),
-            );
+          onEnter: (_) => _hoverArmed = true,
+          onHover: (_) {
+            if (!_hoverArmed || _menu != null || _hoverTimer != null) return;
+            _hoverTimer = Timer(presenter.hoverDelay, () {
+              _hoverTimer = null;
+              unawaited(_open(ReactionTrigger.hover));
+            });
           },
-          onExit: (_) => _hoverTimer?.cancel(),
+          onExit: (_) {
+            _hoverArmed = false;
+            _hoverTimer?.cancel();
+            _hoverTimer = null;
+          },
           child: result,
         );
       }
