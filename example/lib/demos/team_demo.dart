@@ -38,6 +38,9 @@ const Map<String, _Shortcode> _shortcodes = {
 };
 
 /// Draws `:shortcode:` emoji as gradient badges; unicode emoji as text.
+///
+/// In a real app, give custom `:shortcode:` emoji accessible names via a
+/// `ChatReactionsLocalizations` subclass that overrides `emojiLabel`.
 Widget teamEmojiBuilder(BuildContext context, String emoji, double size) {
   final spec = _shortcodes[emoji];
   if (spec == null) return defaultEmojiBuilder(context, emoji, size);
