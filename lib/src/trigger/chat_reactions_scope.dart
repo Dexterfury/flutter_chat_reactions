@@ -26,7 +26,11 @@ const List<String> kDefaultQuickReactions = [
 
 /// Provides defaults for every `ReactableMessage` below it. A message's own
 /// arguments take precedence.
-class ChatReactionsScope extends InheritedWidget {
+///
+/// This is an [InheritedTheme], so menus shown in the root overlay (and
+/// other routes that capture inherited themes) still see the scope that
+/// encloses the message.
+class ChatReactionsScope extends InheritedTheme {
   /// Creates a scope.
   const ChatReactionsScope({
     super.key,
@@ -64,6 +68,18 @@ class ChatReactionsScope extends InheritedWidget {
   /// The nearest scope, or null.
   static ChatReactionsScope? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<ChatReactionsScope>();
+
+  @override
+  Widget wrap(BuildContext context, Widget child) => ChatReactionsScope(
+    presenter: presenter,
+    quickReactions: quickReactions,
+    triggers: triggers,
+    actionsBuilder: actionsBuilder,
+    onMoreTap: onMoreTap,
+    emojiBuilder: emojiBuilder,
+    localizations: localizations,
+    child: child,
+  );
 
   @override
   bool updateShouldNotify(ChatReactionsScope oldWidget) =>

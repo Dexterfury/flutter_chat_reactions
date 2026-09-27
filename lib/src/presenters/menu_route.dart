@@ -41,6 +41,11 @@ class ReactionsMenuRoute extends PopupRoute<void> {
 
   final String _barrierLabel;
 
+  // Inherited themes (Theme, DefaultTextStyle, ChatReactionsScope, ...) of
+  // the context that showed the menu, captured once by
+  // [showReactionsMenuRoute] so the content looks as it would at the message.
+  CapturedThemes? _capturedThemes;
+
   @override
   Color? get barrierColor => null;
 
@@ -55,6 +60,13 @@ class ReactionsMenuRoute extends PopupRoute<void> {
 
   @override
   Duration get reverseTransitionDuration => duration;
+
+  Widget _content(Animation<double> animation) {
+    Widget content = Builder(builder: (context) => builder(context, animation));
+    final themes = _capturedThemes;
+    if (themes != null) content = themes.wrap(content);
+    return content;
+  }
 
   @override
   Widget buildPage(
@@ -94,7 +106,7 @@ class ReactionsMenuRoute extends PopupRoute<void> {
                 ),
               ),
             ),
-          Positioned.fill(child: builder(context, curved)),
+          Positioned.fill(child: _content(curved)),
         ],
       ),
     );
@@ -102,12 +114,20 @@ class ReactionsMenuRoute extends PopupRoute<void> {
 }
 
 /// Pushes [route] on the root navigator and wires [menu.dismiss] to close it.
+///
+/// The inherited themes at [context] (the local `Theme`, `DefaultTextStyle`,
+/// `ChatReactionsScope`, ...) are captured and re-provided to the route's
+/// content.
 Future<void> showReactionsMenuRoute(
   BuildContext context,
   ReactionsMenuContext menu,
   ReactionsMenuRoute route,
 ) {
   final navigator = Navigator.of(context, rootNavigator: true);
+  route._capturedThemes = InheritedTheme.capture(
+    from: context,
+    to: navigator.context,
+  );
   menu.setDismissHandler(() => closeRouteSafely(navigator, route));
   return navigator.push(route);
 }
