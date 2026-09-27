@@ -1,5 +1,6 @@
 import 'package:example/app/demo_id.dart';
 import 'package:example/app/gallery_app.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -26,6 +27,10 @@ void main() {
       GalleryApp(initialDemo: demo, themeMode: themeModeFromEnvironment()),
     );
     await tester.pumpAndSettle();
+    // tool/record_gifs.sh starts the simulator recording when it sees
+    // DEMO_SCRIPT_START and stops it at DEMO_SCRIPT_END.
+    debugPrint('DEMO_SCRIPT_START');
+    await Future<void>.delayed(const Duration(seconds: 1));
     await runDemoScript(
       tester,
       demo,
@@ -34,5 +39,6 @@ void main() {
         await tester.pumpAndSettle();
       },
     );
+    debugPrint('DEMO_SCRIPT_END');
   });
 }

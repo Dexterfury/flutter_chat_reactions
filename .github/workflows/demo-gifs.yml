@@ -1,0 +1,76 @@
+# Records iOS-simulator GIFs of the example gallery (tool/record_gifs.sh) and
+# pushes them on a branch. A PR is opened when the RELEASE_PLEASE_TOKEN secret
+# exists (GitHub Actions may not create PRs in this repo otherwise).
+#
+# Triggers: manual dispatch, a published release, or a push to a non-main
+# branch whose head commit message contains [record-gifs].
+name: Record demo GIFs
+
+on:
+  workflow_dispatch:
+    inputs:
+      demos:
+        description: Space-separated demo slugs (empty = all)
+        required: false
+        default: ''
+  release:
+    types: [published]
+  push:
+    branches-ignore: [main]
+    tags-ignore: ['**']
+
+permissions:
+  contents: write
+
+jobs:
+  record:
+    if: github.event_name != 'push' || contains(github.event.head_commit.message, '[record-gifs]')
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install ffmpeg and gifsicle
+        run: brew install ffmpeg gifsicle
+
+      - name: Record GIFs
+        env:
+          DEMOS: ${{ inputs.demos }}
+        # $DEMOS is intentionally unquoted: it is a space-separated list.
+        run: tool/record_gifs.sh $DEMOS
+
+      - name: Upload GIFs
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-gifs
+          path: doc/gifs/*.gif
+
+      - name: Push branch and open PR
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          BASE: ${{ github.event_name == 'release' && github.event.repository.default_branch || github.ref_name }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          branch="demo-gifs/$RUN_ID"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add doc/gifs/*.gif
+          if git diff --cached --quiet; then
+            echo "No GIF changes."
+            exit 0
+          fi
+          git commit -m "docs: Update demo GIFs"
+          git push origin "$branch"
+          if [ -n "$GH_TOKEN" ]; then
+            gh pr create --base "$BASE" --head "$branch" \
+              --title "docs: Update demo GIFs" \
+              --body "Recorded on the iOS simulator by workflow run $RUN_ID."
+          else
+            echo "::notice::Pushed $branch — open a PR into $BASE (no RELEASE_PLEASE_TOKEN secret)."
+          fi
