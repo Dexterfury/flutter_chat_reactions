@@ -76,11 +76,13 @@ void main() {
 
     expect(
       tester.getSemantics(find.bySemanticsLabel('thumbs up')),
-      isSemantics(isButton: true, isSelected: true, hasTapAction: true),
+      // ignore: deprecated_member_use
+      containsSemantics(isButton: true, isSelected: true, hasTapAction: true),
     );
     expect(
       tester.getSemantics(find.bySemanticsLabel('red heart')),
-      isSemantics(isSelected: false),
+      // ignore: deprecated_member_use
+      containsSemantics(isSelected: false),
     );
     handle.dispose();
   });

@@ -215,7 +215,8 @@ void main() {
     );
     expect(
       tester.getSemantics(find.bySemanticsLabel('thumbs up, 3 reactions')),
-      isSemantics(isButton: true, isSelected: true, hasTapAction: true),
+      // ignore: deprecated_member_use
+      containsSemantics(isButton: true, isSelected: true, hasTapAction: true),
     );
     handle.dispose();
   });

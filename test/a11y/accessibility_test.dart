@@ -89,7 +89,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       tester.getSemantics(find.bySemanticsLabel('red heart')),
-      isSemantics(isButton: true, isSelected: true),
+      // ignore: deprecated_member_use
+      containsSemantics(isButton: true, isSelected: true),
     );
     handle.dispose();
   });
