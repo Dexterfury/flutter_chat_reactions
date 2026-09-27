@@ -8,7 +8,8 @@ coverage/
 
 # Repository-only content (README images load from GitHub)
 /*.gif
-doc/gifs/
+doc/gifs/*
+!doc/gifs/messenger_light.gif
 docs/
 tool/
 .github/

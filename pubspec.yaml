@@ -11,6 +11,10 @@ topics:
   - context-menu
   - messaging
 
+screenshots:
+  - description: 'Messenger-style focused overlay: blurred backdrop, reaction bar above the message and actions below.'
+    path: doc/gifs/messenger_light.gif
+
 environment:
   sdk: ^3.8.0
   flutter: ">=3.32.0"
