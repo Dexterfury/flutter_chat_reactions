@@ -1,3 +1,5 @@
+# Changelog
+
 ## [0.2.7]
 
 * Fixed a bug where customMenuItemBuilder was not being used.
