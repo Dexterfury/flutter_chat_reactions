@@ -25,3 +25,5 @@ export 'src/trigger/reaction_trigger.dart';
 export 'src/widgets/emoji.dart';
 export 'src/widgets/reaction_action_menu.dart';
 export 'src/widgets/reaction_bar.dart';
+export 'src/widgets/reaction_details.dart';
+export 'src/widgets/reactions_summary_view.dart';
