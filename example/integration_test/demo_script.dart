@@ -56,8 +56,11 @@ Finder reactionInBar(String emoji) => find.descendant(
 );
 
 /// Opens message [id]'s reactions menu: long-press on touch platforms,
-/// right-click (the default trigger there) on desktop platforms.
+/// right-click (the default trigger there) on desktop platforms. Scrolls the
+/// message into view first, so scripts also work on small phones.
 Future<void> openMenu(WidgetTester tester, String id, Pace pace) async {
+  await tester.ensureVisible(messageFinder(id));
+  await tester.pumpAndSettle();
   final platform = Theme.of(tester.element(messageFinder(id))).platform;
   if (_touchPlatforms.contains(platform)) {
     await tester.longPress(messageFinder(id));
@@ -160,8 +163,27 @@ Future<void> _theming(WidgetTester tester, Pace pace) async {
   await pace(beat);
   await openMenu(tester, 'm1', pace);
   await tapAndPace(tester, reactionInBar('❤️'), pace);
-  await tapAndPace(tester, find.text('Dark'), pace);
-  await tapAndPace(tester, find.text('Cupertino'), pace);
+  // Switch to the opposite of the starting brightness, so light and dark
+  // recordings both show a switch.
+  final startsDark =
+      Theme.of(tester.element(messageFinder('m1'))).brightness ==
+      Brightness.dark;
+  await tapAndPace(
+    tester,
+    find.descendant(
+      of: find.byKey(const ValueKey('control-brightness')),
+      matching: find.text(startsDark ? 'Light' : 'Dark'),
+    ),
+    pace,
+  );
+  await tapAndPace(
+    tester,
+    find.descendant(
+      of: find.byKey(const ValueKey('control-style')),
+      matching: find.text('Cupertino'),
+    ),
+    pace,
+  );
   await openMenu(tester, 'm1', pace);
   await pace(beat);
   await tapAndPace(tester, reactionInBar('😮'), pace);
@@ -169,6 +191,9 @@ Future<void> _theming(WidgetTester tester, Pace pace) async {
   await tapAndPace(tester, find.byKey(const ValueKey('control-rtl')), pace);
   await openMenu(tester, 'm2', pace);
   await pace(linger);
-  await tester.tapAt(const Offset(8, 830));
+  // Dismiss by tapping the barrier near the view's bottom-left corner.
+  final size = tester.view.physicalSize / tester.view.devicePixelRatio;
+  await tester.tapAt(Offset(8, size.height - 8));
   await pace(beat);
+  expect(find.byType(ReactionBar), findsNothing);
 }

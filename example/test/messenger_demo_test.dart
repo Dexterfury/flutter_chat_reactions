@@ -1,3 +1,4 @@
+import 'package:example/adapters/emoji_picker_sheet.dart';
 import 'package:example/demos/messenger_demo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';

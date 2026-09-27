@@ -7,9 +7,6 @@ import 'package:example/widgets/message_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
 
-export 'package:example/adapters/emoji_picker_sheet.dart'
-    show EmojiPickerLauncher;
-
 /// iMessage / WhatsApp style: focused overlay, stacked summary overlaid on
 /// the bubble, one reaction per user, and a full emoji picker behind "+".
 class MessengerDemo extends StatefulWidget {
@@ -91,8 +88,8 @@ class _MessengerRow extends StatelessWidget {
           actionsBuilder: (_) => actionsFor(message),
           onActionSelected: (action) =>
               chat.handleAction(context, message, action),
-          onMoreTap: (menuContext) async {
-            final emoji = await pickEmoji(menuContext);
+          onMoreTap: (context) async {
+            final emoji = await pickEmoji(context);
             if (emoji != null) select(emoji);
           },
           child: ReactionsSummaryView.overlay(
