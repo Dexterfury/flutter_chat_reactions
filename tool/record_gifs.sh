@@ -7,6 +7,7 @@
 #   THEMES=light tool/record_gifs.sh     # light only
 #   SIMULATOR_UDID=<udid> tool/record_gifs.sh
 #   RECORD_LOG_DIR=<dir> tool/record_gifs.sh   # keep per-run logs after exit
+#   RUN_TIMEOUT=<seconds> tool/record_gifs.sh  # per-demo timeout (default 900)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -110,27 +111,64 @@ record() {
   local video="$WORK/$demo-$theme.mp4"
   local gif="$OUT/${demo}_${theme}.gif"
   local rec_pid="" test_pid size
+  local run_timeout="${RUN_TIMEOUT:-900}"
+  local start timed_out=0 waited
   echo "==> $demo ($theme)"
   xcrun simctl ui "$UDID" appearance "$theme"
   flutter test integration_test/demo_script_test.dart -d "$UDID" \
     --dart-define=DEMO="$demo" --dart-define=THEME="$theme" >"$log" 2>&1 &
   test_pid=$!
-  # Start recording at DEMO_SCRIPT_START, stop at DEMO_SCRIPT_END.
+  start="$SECONDS"
+  # Poll until the run is over: the test process exited, a pass/fail line
+  # (or DEMO_SCRIPT_END) shows up in the log, or the per-run timeout elapses
+  # -- whichever comes first. `flutter test` on a simulator does not always
+  # exit on its own once the Dart test body is done (a hung run must not
+  # block the rest of the demos), so we can't just `wait` for it.
   while kill -0 "$test_pid" 2>/dev/null; do
     if [ -z "$rec_pid" ] && grep -qs DEMO_SCRIPT_START "$log"; then
       xcrun simctl io "$UDID" recordVideo --codec=h264 --force "$video" &
       rec_pid=$!
     fi
-    if [ -n "$rec_pid" ] && grep -qs DEMO_SCRIPT_END "$log"; then
+    if grep -Eqs \
+      'DEMO_SCRIPT_END|All tests passed!|tests passed, |Some tests failed|Test failed\.' \
+      "$log"; then
+      break
+    fi
+    if [ "$((SECONDS - start))" -ge "$run_timeout" ]; then
+      echo "error: $demo ($theme) exceeded ${run_timeout}s without finishing" >&2
+      timed_out=1
       break
     fi
     sleep 0.2
   done
+
+  # Stop the recording (best-effort: it may never have started, e.g. on a
+  # failure before DEMO_SCRIPT_START).
   if [ -n "$rec_pid" ]; then
     kill -INT "$rec_pid" 2>/dev/null || true
-    wait "$rec_pid" || true
+    wait "$rec_pid" 2>/dev/null || true
   fi
-  if ! wait "$test_pid"; then
+
+  # Give flutter test up to 60s to exit on its own now that the run is over;
+  # otherwise kill it and any children it spawned (e.g. xcodebuild/the test
+  # runner) so a hung or timed-out run can never block the remaining demos.
+  waited=0
+  while kill -0 "$test_pid" 2>/dev/null && [ "$waited" -lt 60 ]; do
+    sleep 1
+    waited=$((waited + 1))
+  done
+  if kill -0 "$test_pid" 2>/dev/null; then
+    echo "warning: flutter test for $demo ($theme) did not exit, killing it" >&2
+    pkill -P "$test_pid" 2>/dev/null || true
+    kill -9 "$test_pid" 2>/dev/null || true
+  fi
+  wait "$test_pid" 2>/dev/null || true
+
+  # Decide pass/fail from the log, not the exit code: once we've had to kill
+  # a hung or timed-out run, its exit status no longer reflects whether the
+  # demo script actually passed.
+  if [ "$timed_out" -eq 1 ] || ! grep -qs 'All tests passed!' "$log" ||
+    ! grep -qs DEMO_SCRIPT_END "$log"; then
     cat "$log"
     echo "error: demo script failed: $demo ($theme)" >&2
     return 1
