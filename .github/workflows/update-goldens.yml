@@ -3,6 +3,8 @@ name: Update goldens
 on:
   workflow_dispatch:
   push:
+    branches-ignore: [main]
+    tags-ignore: ['**']
 
 permissions:
   contents: write
