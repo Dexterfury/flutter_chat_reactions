@@ -9,6 +9,10 @@ import 'reaction_user.dart';
 /// `summarize`.
 class ReactionSummary {
   /// Creates a reaction summary. [count] must be at least 1.
+  ///
+  /// [users] is stored as given (not copied); pass an unmodifiable list to
+  /// keep the summary immutable. [ReactionSummary.fromJson] and [copyWith]
+  /// always produce an unmodifiable list.
   const ReactionSummary({
     required this.emoji,
     required this.count,
@@ -22,10 +26,10 @@ class ReactionSummary {
         emoji: json['emoji']! as String,
         count: (json['count']! as num).toInt(),
         reactedByMe: json['reactedByMe'] as bool? ?? false,
-        users: [
+        users: List.unmodifiable([
           for (final user in json['users'] as List<Object?>? ?? const [])
             ReactionUser.fromJson(user! as Map<String, Object?>),
-        ],
+        ]),
       );
 
   /// The emoji. Any string: a unicode emoji or an app-specific id such as
@@ -51,7 +55,7 @@ class ReactionSummary {
     emoji: emoji ?? this.emoji,
     count: count ?? this.count,
     reactedByMe: reactedByMe ?? this.reactedByMe,
-    users: users ?? this.users,
+    users: List.unmodifiable(users ?? this.users),
   );
 
   /// Converts to JSON. `users` is omitted when empty.

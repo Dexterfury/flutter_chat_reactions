@@ -211,4 +211,29 @@ void main() {
     expect(seen.length, greaterThan(1));
     expect(seen.toSet(), hasLength(1));
   });
+
+  testWidgets('transitionDuration is ignored under reduced motion', (
+    tester,
+  ) async {
+    late Animation<double> animation;
+    await tester.pumpWidget(
+      harness(
+        PresenterLauncher(
+          presenter: CustomPresenter(
+            transitionDuration: const Duration(seconds: 1),
+            builder: (context, menu, a) {
+              animation = a;
+              return const Center(child: Text('custom-ui'));
+            },
+          ),
+          menu: testMenu(),
+        ),
+        disableAnimations: true,
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pump();
+    await tester.pump();
+    expect(animation.value, 1);
+  });
 }

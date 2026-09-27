@@ -35,6 +35,7 @@ class CustomPresenter extends ReactionsPresenter {
   final double blurSigma;
 
   /// Open/close duration; defaults to the theme's animation duration.
+  /// Ignored (zero) when the platform requests reduced motion.
   final Duration? transitionDuration;
 
   /// Whether tapping outside the menu or pressing Escape closes it (the
@@ -48,7 +49,10 @@ class CustomPresenter extends ReactionsPresenter {
     final theme = ChatReactionsTheme.of(context);
     final route = ReactionsMenuRoute(
       menu: menu,
-      duration: transitionDuration ?? theme.animationDuration!,
+      // The resolved theme duration is already zero under reduced motion.
+      duration: MediaQuery.maybeDisableAnimationsOf(context) ?? false
+          ? Duration.zero
+          : transitionDuration ?? theme.animationDuration!,
       curve: theme.animationCurve!,
       barrierTint: barrierColor,
       blurSigma: blurSigma,

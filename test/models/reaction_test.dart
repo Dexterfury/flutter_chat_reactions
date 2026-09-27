@@ -135,4 +135,16 @@ void main() {
       expect(() => summaries.add(summaries.first), throwsUnsupportedError);
     });
   });
+
+  test('fromJson and copyWith produce an unmodifiable extra', () {
+    final parsed = Reaction.fromJson(const {
+      'emoji': '👍',
+      'userId': 'u1',
+      'extra': {'k': 1},
+    });
+    expect(() => parsed.extra['x'] = 2, throwsUnsupportedError);
+    final copy = parsed.copyWith(extra: {'k': 2});
+    expect(() => copy.extra['x'] = 2, throwsUnsupportedError);
+    expect(copy.extra, {'k': 2});
+  });
 }

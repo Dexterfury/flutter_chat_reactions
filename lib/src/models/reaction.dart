@@ -6,6 +6,10 @@ import 'reaction_user.dart';
 /// individually. Convert a list of these to display data with `summarize`.
 class Reaction {
   /// Creates a reaction.
+  ///
+  /// [extra] is stored as given (not copied); pass an unmodifiable map to
+  /// keep the reaction immutable. [Reaction.fromJson] and [copyWith] always
+  /// produce an unmodifiable map.
   const Reaction({
     required this.emoji,
     required this.userId,
@@ -24,7 +28,9 @@ class Reaction {
       userId: json['userId']! as String,
       userName: json['userName'] as String?,
       createdAt: created == null ? null : DateTime.parse(created as String),
-      extra: json['extra'] as Map<String, Object?>? ?? const {},
+      extra: Map<String, Object?>.unmodifiable(
+        json['extra'] as Map<String, Object?>? ?? const {},
+      ),
     );
   }
 
@@ -55,7 +61,7 @@ class Reaction {
     userId: userId ?? this.userId,
     userName: userName ?? this.userName,
     createdAt: createdAt ?? this.createdAt,
-    extra: extra ?? this.extra,
+    extra: Map<String, Object?>.unmodifiable(extra ?? this.extra),
   );
 
   /// Converts to JSON. Null and empty fields are omitted.

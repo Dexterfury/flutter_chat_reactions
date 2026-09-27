@@ -38,4 +38,23 @@ void main() {
     expect(a.toString(), contains('👍'));
     expect(a.toString(), contains('2'));
   });
+
+  test('fromJson and copyWith produce unmodifiable users', () {
+    final parsed = ReactionSummary.fromJson(const {
+      'emoji': '👍',
+      'count': 1,
+      'users': [
+        {'id': 'u1'},
+      ],
+    });
+    expect(
+      () => parsed.users.add(const ReactionUser(id: 'x')),
+      throwsUnsupportedError,
+    );
+    final copy = parsed.copyWith(users: [const ReactionUser(id: 'u2')]);
+    expect(
+      () => copy.users.add(const ReactionUser(id: 'x')),
+      throwsUnsupportedError,
+    );
+  });
 }

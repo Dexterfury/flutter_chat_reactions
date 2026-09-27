@@ -91,6 +91,10 @@ class ChatReactionsTheme extends ThemeExtension<ChatReactionsTheme> {
   final ReactionHaptics? haptics;
 
   /// Whether the resolved style is Cupertino.
+  ///
+  /// Meaningful on resolved themes (from [ChatReactionsTheme.of] or the
+  /// factories); false for an unresolved theme whose [style] is
+  /// [ReactionsVisualStyle.adaptive] or null.
   bool get isCupertino => style == ReactionsVisualStyle.cupertino;
 
   /// The fully resolved theme for [context]: adaptive defaults, overridden by
