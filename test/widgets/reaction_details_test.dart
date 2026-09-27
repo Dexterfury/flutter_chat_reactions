@@ -112,4 +112,77 @@ void main() {
     expect(avatar.backgroundImage, isA<NetworkImage>());
     expect(avatar.child, isNull);
   });
+
+  group('emojiBuilder', () {
+    Widget party(BuildContext context, String emoji, double size) =>
+        emoji == ':party:'
+        ? SizedBox(key: const Key('party-image'), width: size, height: size)
+        : Text(emoji);
+
+    const custom = [
+      ReactionSummary(
+        emoji: ':party:',
+        count: 1,
+        users: [ReactionUser(id: 'u1', name: 'Ada')],
+      ),
+      ReactionSummary(emoji: ':party:', count: 2),
+    ];
+
+    testWidgets('ReactionDetailsList renders custom emoji', (tester) async {
+      await tester.pumpWidget(
+        harness(ReactionDetailsList(reactions: custom, emojiBuilder: party)),
+      );
+      expect(find.text(':party:'), findsNothing);
+      expect(find.byKey(const Key('party-image')), findsNWidgets(2));
+    });
+
+    testWidgets('showReactionDetails renders custom emoji in tabs and rows', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        harness(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showReactionDetails(
+                context,
+                custom.take(1).toList(),
+                emojiBuilder: party,
+              ),
+              child: const Text('details'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('details'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining(':party:'), findsNothing);
+      // One in the emoji tab, one in the user row of the "All" tab.
+      expect(find.byKey(const Key('party-image')), findsNWidgets(2));
+    });
+
+    testWidgets('BottomSheetPresenter passes the menu emojiBuilder', (
+      tester,
+    ) async {
+      final menu = ReactionsMenuContext(
+        anchorRect: const Rect.fromLTWH(0, 0, 10, 10),
+        messageBuilder: (_) => const SizedBox(),
+        quickReactions: const ['👍'],
+        reactions: custom.take(1).toList(),
+        emojiBuilder: party,
+      );
+      await tester.pumpWidget(
+        harness(
+          PresenterLauncher(
+            presenter: const BottomSheetPresenter(showReactionDetails: true),
+            menu: menu,
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.text('Ada'), findsOneWidget);
+      expect(find.text(':party:'), findsNothing);
+      expect(find.byKey(const Key('party-image')), findsOneWidget);
+    });
+  });
 }

@@ -30,6 +30,21 @@ class ReactionAction<T> {
   /// Optional app-specific payload.
   final T? value;
 
+  /// Returns a copy with the given fields replaced.
+  ReactionAction<T> copyWith({
+    String? id,
+    String? label,
+    IconData? icon,
+    bool? isDestructive,
+    T? value,
+  }) => ReactionAction<T>(
+    id: id ?? this.id,
+    label: label ?? this.label,
+    icon: icon ?? this.icon,
+    isDestructive: isDestructive ?? this.isDestructive,
+    value: value ?? this.value,
+  );
+
   @override
   bool operator ==(Object other) => other is ReactionAction && other.id == id;
 

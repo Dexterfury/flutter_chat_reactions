@@ -103,7 +103,10 @@ class BottomSheetPresenter extends ReactionsPresenter {
           if (showReactionDetails && menu.reactions.isNotEmpty)
             ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 240),
-              child: ReactionDetailsList(reactions: menu.reactions),
+              child: ReactionDetailsList(
+                reactions: menu.reactions,
+                emojiBuilder: menu.emojiBuilder,
+              ),
             ),
           const SizedBox(height: 8),
           for (final action in menu.actions)
@@ -138,6 +141,7 @@ class BottomSheetPresenter extends ReactionsPresenter {
                   child: ReactionDetailsList(
                     reactions: menu.reactions,
                     scrollable: false,
+                    emojiBuilder: menu.emojiBuilder,
                   ),
                 ),
               ),

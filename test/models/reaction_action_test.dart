@@ -26,4 +26,22 @@ void main() {
     const a = ReactionAction<void>(id: 'reply', label: 'Reply');
     expect(a.toString(), 'ReactionAction(reply)');
   });
+
+  test('copyWith replaces given fields and keeps the rest', () {
+    const a = ReactionAction<int>(
+      id: 'reply',
+      label: 'Reply',
+      icon: Icons.reply,
+      value: 1,
+    );
+    final b = a.copyWith(label: 'Antworten', isDestructive: true, value: 2);
+    expect(b.id, 'reply');
+    expect(b.label, 'Antworten');
+    expect(b.icon, Icons.reply);
+    expect(b.isDestructive, isTrue);
+    expect(b.value, 2);
+    expect(a.copyWith(id: 'copy').id, 'copy');
+    expect(a.copyWith().label, 'Reply');
+    expect(a.copyWith(icon: Icons.copy).icon, Icons.copy);
+  });
 }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../l10n/chat_reactions_localizations.dart';
 import '../models/reaction_summary.dart';
 import '../models/reaction_user.dart';
+import 'emoji.dart';
 
 /// Lists who reacted with what. Shows a count when user details are unknown.
 class ReactionDetailsList extends StatelessWidget {
@@ -13,10 +14,15 @@ class ReactionDetailsList extends StatelessWidget {
     super.key,
     required this.reactions,
     this.scrollable = true,
+    this.emojiBuilder,
   });
 
   /// Reactions to list.
   final List<ReactionSummary> reactions;
+
+  /// Custom emoji rendering (e.g. images for `:shortcode:` ids); emojis are
+  /// shown as text when null.
+  final EmojiBuilder? emojiBuilder;
 
   /// Whether rows are laid out in a scrolling, shrink-wrapped [ListView]
   /// (the default). When false, rows are laid out in a plain, non-lazy
@@ -34,14 +40,20 @@ class ReactionDetailsList extends StatelessWidget {
         rows.add(
           ListTile(
             dense: true,
-            leading: Text(summary.emoji, style: const TextStyle(fontSize: 22)),
+            leading: _emoji(context, emojiBuilder, summary.emoji, 22),
             title: Text(l10n.reactionCount(summary.count)),
           ),
         );
         continue;
       }
       for (final user in summary.users) {
-        rows.add(_UserTile(user: user, emoji: summary.emoji));
+        rows.add(
+          _UserTile(
+            user: user,
+            emoji: summary.emoji,
+            emojiBuilder: emojiBuilder,
+          ),
+        );
       }
     }
     if (!scrollable) {
@@ -51,11 +63,25 @@ class ReactionDetailsList extends StatelessWidget {
   }
 }
 
+Widget _emoji(
+  BuildContext context,
+  EmojiBuilder? builder,
+  String emoji,
+  double size,
+) => builder == null
+    ? Text(emoji, style: TextStyle(fontSize: size))
+    : builder(context, emoji, size);
+
 class _UserTile extends StatelessWidget {
-  const _UserTile({required this.user, required this.emoji});
+  const _UserTile({
+    required this.user,
+    required this.emoji,
+    required this.emojiBuilder,
+  });
 
   final ReactionUser user;
   final String emoji;
+  final EmojiBuilder? emojiBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +96,7 @@ class _UserTile extends StatelessWidget {
             : null,
       ),
       title: Text(name),
-      trailing: Text(emoji, style: const TextStyle(fontSize: 20)),
+      trailing: _emoji(context, emojiBuilder, emoji, 20),
     );
   }
 }
@@ -78,10 +104,18 @@ class _UserTile extends StatelessWidget {
 /// A tabbed sheet: "All" plus one tab per emoji, each listing users.
 class ReactionDetailsSheet extends StatelessWidget {
   /// Creates a details sheet.
-  const ReactionDetailsSheet({super.key, required this.reactions});
+  const ReactionDetailsSheet({
+    super.key,
+    required this.reactions,
+    this.emojiBuilder,
+  });
 
   /// Reactions to show.
   final List<ReactionSummary> reactions;
+
+  /// Custom emoji rendering for the tabs and rows; emojis are shown as text
+  /// when null.
+  final EmojiBuilder? emojiBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -98,15 +132,33 @@ class ReactionDetailsSheet extends StatelessWidget {
             tabAlignment: TabAlignment.start,
             tabs: [
               Tab(text: '${l10n.allReactions} $total'),
-              for (final r in reactions) Tab(text: '${r.emoji} ${r.count}'),
+              for (final r in reactions)
+                emojiBuilder == null
+                    ? Tab(text: '${r.emoji} ${r.count}')
+                    : Tab(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            emojiBuilder!(context, r.emoji, 16),
+                            Text(' ${r.count}'),
+                          ],
+                        ),
+                      ),
             ],
           ),
           SizedBox(
             height: height,
             child: TabBarView(
               children: [
-                ReactionDetailsList(reactions: reactions),
-                for (final r in reactions) ReactionDetailsList(reactions: [r]),
+                ReactionDetailsList(
+                  reactions: reactions,
+                  emojiBuilder: emojiBuilder,
+                ),
+                for (final r in reactions)
+                  ReactionDetailsList(
+                    reactions: [r],
+                    emojiBuilder: emojiBuilder,
+                  ),
               ],
             ),
           ),
@@ -116,14 +168,21 @@ class ReactionDetailsSheet extends StatelessWidget {
   }
 }
 
-/// Shows [ReactionDetailsSheet] in a modal bottom sheet.
+/// Shows [ReactionDetailsSheet] in a modal bottom sheet. [emojiBuilder]
+/// renders custom emoji; emojis are shown as text when null.
 Future<void> showReactionDetails(
   BuildContext context,
-  List<ReactionSummary> reactions,
-) => showModalBottomSheet<void>(
+  List<ReactionSummary> reactions, {
+  EmojiBuilder? emojiBuilder,
+}) => showModalBottomSheet<void>(
   context: context,
   useRootNavigator: true,
   showDragHandle: true,
   isScrollControlled: true,
-  builder: (_) => SafeArea(child: ReactionDetailsSheet(reactions: reactions)),
+  builder: (_) => SafeArea(
+    child: ReactionDetailsSheet(
+      reactions: reactions,
+      emojiBuilder: emojiBuilder,
+    ),
+  ),
 );
