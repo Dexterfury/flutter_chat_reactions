@@ -1,11 +1,3 @@
-## Unreleased (1.0.0)
-
-* **Breaking:** New layered API. `ReactableMessage` replaces `ChatMessageWrapper`, `ReactionsSummaryView` replaces `StackedReactions`, `ChatReactionsTheme` + presenters replace `ChatReactionsConfig`, `ReactionAction` replaces `MenuItem`.
-* App-owned data: pass `List<ReactionSummary>`; `ReactionsController` is optional and supports single/multiple policies with optimistic rollback.
-* Four presenters: focused overlay (default), compact bar, bottom sheet, headless `CustomPresenter`.
-* Adaptive Cupertino/Material theming via `ThemeExtension`; RTL, keyboard, screen-reader and reduced-motion support.
-* No third-party dependencies (emoji picker is pluggable via `onMoreTap`).
-
 ## [0.2.7]
 
 * Fixed a bug where customMenuItemBuilder was not being used.

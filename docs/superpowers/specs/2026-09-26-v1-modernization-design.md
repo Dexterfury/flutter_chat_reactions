@@ -205,7 +205,7 @@ ReactionsSummaryView({
   int maxVisible = 5,                                        // overflow shown as "+N"
   ValueChanged<String>? onReactionTap,
   VoidCallback? onTap,
-  ValueChanged<String>? onLongPress,
+  ValueChanged<String>? onReactionLongPress,
   Widget Function(BuildContext, ReactionSummary)? chipBuilder,
   Widget Function(BuildContext, String emoji, double size)? emojiBuilder,
 })
@@ -419,3 +419,7 @@ Each phase ends green in CI.
 3. `ReactionChipStyle` uses `borderRadius` (`BorderRadiusGeometry?`) instead of `shape`.
 4. `ReactionOverlayStyle.messageShadows` defaults to `[]`. A rectangular shadow around a rounded bubble looks wrong; apps can opt in.
 5. Default triggers depend on `TargetPlatform`, not `kIsWeb`, so mobile web behaves like a touch device.
+6. `ReactionsSummaryView.onLongPress` was renamed to `onReactionLongPress`, to match `onReactionTap`.
+7. Additive API from the final review: `CustomPresenter(dismissible:)`, `ReactionAction.copyWith`, `emojiBuilder` on `ReactionDetailsList`/`ReactionDetailsSheet`/`showReactionDetails`, `ReactionDetailsList(scrollable:)`, and `ChatReactionsTheme` value equality.
+8. Presenters capture the message's inherited themes (`InheritedTheme.capture`), and `ChatReactionsScope` is an `InheritedTheme`, so local themes, scopes and localizations reach the menus.
+9. The minimum is Flutter 3.32 / Dart 3.8 (not 3.27/3.6), because `flutter_lints` 6 requires it.
