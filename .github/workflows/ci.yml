@@ -44,7 +44,12 @@ jobs:
         run: flutter analyze --fatal-infos
 
       - name: Test with coverage
-        run: flutter test --coverage
+        run: |
+          if [ "${{ matrix.flutter }}" = "stable" ]; then
+            flutter test --coverage
+          else
+            flutter test --coverage --exclude-tags golden
+          fi
 
       - name: Enforce coverage floor
         if: matrix.flutter == 'stable'
