@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../l10n/chat_reactions_localizations.dart';
 import '../theme/chat_reactions_theme.dart';
@@ -25,13 +26,24 @@ class BottomSheetPresenter extends ReactionsPresenter {
     final theme = ChatReactionsTheme.of(context);
     final navigator = Navigator.of(context, rootNavigator: true);
     Route<dynamic>? sheetRoute;
+    var dismissRequested = false;
     menu.setDismissHandler(() {
       final route = sheetRoute;
-      if (route != null) closeRouteSafely(navigator, route);
+      if (route != null) {
+        closeRouteSafely(navigator, route);
+      } else {
+        dismissRequested = true;
+      }
     });
 
     Widget capture(BuildContext sheetContext, Widget child) {
-      sheetRoute = ModalRoute.of(sheetContext);
+      final route = ModalRoute.of(sheetContext);
+      sheetRoute = route;
+      if (dismissRequested && route != null) {
+        SchedulerBinding.instance.addPostFrameCallback(
+          (_) => closeRouteSafely(navigator, route),
+        );
+      }
       return child;
     }
 

@@ -68,6 +68,55 @@ void main() {
     expect(find.byType(CupertinoActionSheet), findsNothing);
   });
 
+  testWidgets(
+    'Material: dismiss before the sheet finishes building closes it',
+    (tester) async {
+      var closed = false;
+      late ReactionsMenuContext menu;
+      menu = testMenu();
+      await tester.pumpWidget(
+        harness(
+          PresenterLauncher(
+            presenter: const BottomSheetPresenter(),
+            menu: menu,
+            onClosed: () => closed = true,
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      menu.dismiss();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BottomSheet), findsNothing);
+      expect(closed, isTrue);
+    },
+  );
+
+  testWidgets(
+    'Cupertino: dismiss before the sheet finishes building closes it',
+    (tester) async {
+      var closed = false;
+      late ReactionsMenuContext menu;
+      menu = testMenu();
+      await tester.pumpWidget(
+        harness(
+          PresenterLauncher(
+            presenter: const BottomSheetPresenter(),
+            menu: menu,
+            onClosed: () => closed = true,
+          ),
+          platform: TargetPlatform.iOS,
+        ),
+      );
+      await tester.tap(find.text('open'));
+      menu.dismiss();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CupertinoActionSheet), findsNothing);
+      expect(closed, isTrue);
+    },
+  );
+
   testWidgets('showReactionDetails lists users', (tester) async {
     await tester.pumpWidget(
       harness(
