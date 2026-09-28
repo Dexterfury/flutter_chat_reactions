@@ -7,7 +7,6 @@
     ".": {
       "release-type": "dart",
       "package-name": "flutter_chat_reactions",
-      "release-as": "1.0.0",
       "changelog-path": "CHANGELOG.md",
       "exclude-paths": ["example", "docs", "doc", "tool", ".github"],
       "extra-files": [{ "type": "generic", "path": "README.md" }],
