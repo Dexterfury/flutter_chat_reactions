@@ -1,0 +1,45 @@
+name: Bug report
+description: Something in flutter_chat_reactions doesn't work as expected.
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What you expected to happen, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: The smallest code sample that shows the problem.
+      render: dart
+    validations:
+      required: true
+  - type: input
+    id: package-version
+    attributes:
+      label: Package version
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: textarea
+    id: flutter-version
+    attributes:
+      label: Output of `flutter --version`
+      render: text
+    validations:
+      required: true
+  - type: dropdown
+    id: platforms
+    attributes:
+      label: Platforms affected
+      multiple: true
+      options: [iOS, Android, Web, macOS, Windows, Linux]
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots, recordings or logs

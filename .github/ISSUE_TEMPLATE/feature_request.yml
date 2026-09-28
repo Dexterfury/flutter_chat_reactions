@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest an improvement or a new capability.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the use case in your chat app.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How you imagine the API or behaviour. Code sketches welcome.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've tried
+      description: For example a custom presenter, theme or builder.

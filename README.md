@@ -277,9 +277,9 @@ flutter run --dart-define=DEMO=team --dart-define=THEME=dark
 
 ## Contributing
 
-Contributions are welcome. CI runs formatting, analysis, tests (≥ 90% coverage), the pub.dev score,
-golden tests and the example on Flutter 3.32 and stable. See [RELEASING.md](RELEASING.md) for how
-releases, golden images and the demo GIFs are produced.
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the setup, the checks CI runs
+and the pull request process. Every change is reviewed by the maintainer before it is merged.
+Please report security issues privately as described in [SECURITY.md](SECURITY.md).
 
 ## Support
 
