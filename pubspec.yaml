@@ -1,6 +1,6 @@
 name: flutter_chat_reactions
 description: "Add reactions and a context menu to chat messages in Flutter, with adaptive iOS and Material styling."
-version: 0.2.7
+version: 1.0.0
 homepage: https://github.com/Dexterfury/flutter_chat_reactions
 repository: https://github.com/Dexterfury/flutter_chat_reactions
 issue_tracker: https://github.com/Dexterfury/flutter_chat_reactions/issues
