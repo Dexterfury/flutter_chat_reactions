@@ -25,7 +25,7 @@ jobs:
       matrix:
         flutter: ['3.32.x', 'stable']
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: subosito/flutter-action@v2
         with:
@@ -58,7 +58,7 @@ jobs:
 
       - name: Upload coverage
         if: matrix.flutter == 'stable'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lcov
           path: coverage/lcov.info
@@ -71,7 +71,7 @@ jobs:
     name: Package score (pana)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -92,8 +92,8 @@ jobs:
       run:
         working-directory: example
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-java@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         if: matrix.target == 'apk'
         with:
           distribution: temurin
@@ -121,7 +121,7 @@ jobs:
       run:
         working-directory: example
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
