@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.0.0] (2026-09-28)
+
+A redesign for any chat app — see [MIGRATION.md](https://github.com/Dexterfury/flutter_chat_reactions/blob/main/MIGRATION.md) for upgrading from 0.2.x.
+
+### Breaking changes
+
+* New layered API: `ReactableMessage` replaces `ChatMessageWrapper`; `ReactionsSummaryView`
+  replaces `StackedReactions`; `ChatReactionsTheme` (ThemeExtension), `ChatReactionsScope` and
+  presenters replace `ChatReactionsConfig`; `ReactionAction` replaces `MenuItem`;
+  `ReactionsController` methods renamed.
+* Requires Flutter 3.32+ / Dart 3.8+. No third-party dependencies (emoji picker is pluggable via
+  `onMoreTap`).
+
+### Features
+
+* App-owned data (`ReactionSummary`, `summarize`); optional `ReactionsController` with
+  single/multiple policies and optimistic rollback.
+* Four presenters: focused overlay (default), compact bar, bottom sheet, headless
+  `CustomPresenter`.
+* Adaptive Cupertino/Material theming; long-press, double-tap, right-click, hover, keyboard and
+  screen-reader triggers; RTL, keyboard navigation, reduced motion, localization.
+* `ReactionsSummaryView` chips / stacked / compact layouts and a who-reacted details sheet.
+* Example gallery with six demos.
+
 ## [0.2.7]
 
 * Fixed a bug where customMenuItemBuilder was not being used.
