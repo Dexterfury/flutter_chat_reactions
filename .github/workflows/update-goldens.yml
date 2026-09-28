@@ -1,0 +1,30 @@
+name: Update goldens
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: [main]
+    tags-ignore: ['**']
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[update-goldens]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter test --tags golden --update-goldens
+      - name: Commit goldens
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add test/goldens/*.png
+          git diff --cached --quiet || git commit -m "test: Update golden images"
+          git push origin HEAD:${{ github.ref_name }}

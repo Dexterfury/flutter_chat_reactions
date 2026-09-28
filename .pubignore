@@ -1,0 +1,25 @@
+# Build and tool output
+.dart_tool/
+build/
+coverage/
+/pubspec.lock
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Repository-only content (README images load from GitHub)
+/*.gif
+doc/gifs/*
+!doc/gifs/messenger_light.gif
+docs/
+tool/
+.github/
+.qodo
+
+# Example build output
+example/build/
+example/.dart_tool/
+
+# Editor / OS
+.idea/
+*.iml
+.DS_Store
