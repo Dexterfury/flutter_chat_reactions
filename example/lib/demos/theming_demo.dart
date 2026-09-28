@@ -1,5 +1,6 @@
 import 'package:example/app/demo_id.dart';
 import 'package:example/app/gallery_app.dart';
+import 'package:example/data/sample_chat.dart';
 import 'package:example/widgets/bubble_row.dart';
 import 'package:example/widgets/demo_chat_model.dart';
 import 'package:example/widgets/message_actions.dart';
@@ -81,7 +82,12 @@ class _ThemingDemoState extends State<ThemingDemo> {
                           children: [
                             for (final message in _chat.messages)
                               BubbleRow(
-                                message: message,
+                                message: _rtl
+                                    ? message.withText(
+                                        kRtlSampleTexts[message.id] ??
+                                            message.text,
+                                      )
+                                    : message,
                                 chat: _chat,
                                 actionsFor: actionsFor,
                               ),

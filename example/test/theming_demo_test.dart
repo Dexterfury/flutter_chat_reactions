@@ -1,5 +1,6 @@
 import 'package:example/app/demo_id.dart';
 import 'package:example/app/gallery_app.dart';
+import 'package:example/data/sample_chat.dart';
 import 'package:example/demos/theming_demo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_reactions/flutter_chat_reactions.dart';
@@ -53,6 +54,21 @@ void main() {
     await tester.pumpAndSettle();
     final after = tester.getRect(find.byKey(const ValueKey('msg-m1')));
     expect(after.center.dx, greaterThan(before.center.dx));
+  });
+
+  testWidgets('RTL swaps the sample text to Arabic and back', (tester) async {
+    await pump(tester);
+    expect(find.text('Morning! Did the new build land?'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('control-rtl')));
+    await tester.pumpAndSettle();
+    expect(find.text(kRtlSampleTexts['m1']!), findsOneWidget);
+    expect(find.text('Morning! Did the new build land?'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('control-rtl')));
+    await tester.pumpAndSettle();
+    expect(find.text('Morning! Did the new build land?'), findsOneWidget);
+    expect(find.text(kRtlSampleTexts['m1']!), findsNothing);
   });
 
   testWidgets('text scale 2× makes the focused overlay fall back to a sheet', (

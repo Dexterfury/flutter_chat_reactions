@@ -65,7 +65,25 @@ class ChatMessage {
 
   /// Whether the current user wrote this message.
   bool get isMine => authorId == kMe.id;
+
+  /// Returns a copy of this message with [text] substituted; id and author
+  /// stay the same, so keys (`msg-<id>`, `summary-<id>`, `reactable-<id>`)
+  /// and reactions are unaffected.
+  ChatMessage withText(String text) =>
+      ChatMessage(id: id, authorId: authorId, text: text);
 }
+
+/// Arabic translations of [sampleConversation]'s messages, keyed by message
+/// id. Used by the theming demo's RTL mode so the sample text reads
+/// naturally right-to-left (the English text is valid but visually odd in
+/// RTL layout, since bidi rules keep line-end punctuation at the start).
+const Map<String, String> kRtlSampleTexts = {
+  'm1': 'صباح الخير! هل وصل الإصدار الجديد؟',
+  'm2': 'نعم، التفاعلات تعمل في كل مكان الآن.',
+  'm3': 'اضغط مطولًا على أي رسالة للتفاعل.',
+  'm4': 'على سطح المكتب يمكنك النقر بزر الفأرة الأيمن أو التمرير فوق الرسالة.',
+  'm5': 'سنطلقه بعد الغداء.',
+};
 
 /// The conversation every demo starts from (ids m1–m5).
 List<ChatMessage> sampleConversation() => const [

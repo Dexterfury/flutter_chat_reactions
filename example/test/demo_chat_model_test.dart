@@ -11,6 +11,11 @@ void main() {
       for (final emoji in kDefaultQuickReactions) {
         expect(message.text.contains(emoji), isFalse, reason: message.id);
       }
+      final rtlText = kRtlSampleTexts[message.id];
+      expect(rtlText, isNotNull, reason: '${message.id} has no RTL text');
+      for (final emoji in kDefaultQuickReactions) {
+        expect(rtlText!.contains(emoji), isFalse, reason: message.id);
+      }
     }
   });
 
