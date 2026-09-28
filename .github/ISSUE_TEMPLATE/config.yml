@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/Dexterfury/flutter_chat_reactions/security/advisories/new
+    about: Please report security issues privately, not as public issues.
+  - name: Migrating from 0.2.x
+    url: https://github.com/Dexterfury/flutter_chat_reactions/blob/main/MIGRATION.md
+    about: A mapping of every 0.2.x class and option to the 1.0 API.
